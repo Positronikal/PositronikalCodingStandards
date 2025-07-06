@@ -10,6 +10,9 @@ Establishes standard code formatting and engineering philosophy based on Unix pr
 ### [Repository Security Rules](./Repository%20Security%20Rules.md)
 Comprehensive security framework covering CI/CD pipelines, dependency management, vulnerability scanning, and security automation. Scales from basic security practices to enterprise-grade protections.
 
+### [GitHub Configuration Standards](./GitHub%20Configuration%20Standards.md)
+Platform-specific configuration requirements for GitHub user accounts, organizations, and repositories. Covers security settings, access controls, audit requirements, and compliance features essential for professional development workflows.
+
 ## Specialized Standards
 
 ### [Forensic Evidence Tool Standards](./Forensic%20Evidence%20Tool%20Standards.md)
