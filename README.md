@@ -83,11 +83,11 @@ Based on the Unix Philosophy emphasizing:
 
 ## Contributing
 
-These standards are themselves subject to continuous improvement. See [CONTRIBUTING.md](./repo-template-apps/CONTRIBUTING.md) for guidance on proposing improvements or additions.
+These standards are themselves subject to continuous improvement. See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidance on proposing improvements or additions.
 
-## Legal Considerations
+## License
 
-While these standards include security and legal compliance guidance, they do not constitute legal advice. For projects with specific compliance requirements, consult with appropriate legal and security professionals.
+This framework is licensed under GPL-3.0. See [COPYING.md](./COPYING.md) for details. The license applies to the framework documentation itself, not to tools developed using these guidelines.
 
 ---
 
