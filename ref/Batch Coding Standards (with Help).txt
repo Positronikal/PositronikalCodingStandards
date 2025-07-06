@@ -1,0 +1,112 @@
+@cls
+@title Optional Title
+@echo off
+setlocal EnableExtensions DisableDelayedExpansion
+
+::Comment that describes purpose and usage of the script; this should also
+::contain (original) script name, version, date and author, as applicable.
+
+::::
+::::"%~nx0"  [version 0.0]
+::::
+::::Help message text that describes the purpose of the script in detail;
+::::some parts of that text may be placed elsewhere in the script.
+::::The continued text could describe the exact usage of the script,
+::::illustrating the syntax and listing all the accepted parameters.
+::::
+
+rem Define global constants (read-only variables) here (names begin with `_`).
+
+rem Initialise global variables (those accessed also by sub-routines) here,
+rem if any (names begin with `$`).
+
+rem Parse command line arguments and/or user input data here;
+rem regard cases when too few or too many arguments are provided;
+rem regard cases when user input is empty.
+if "%~1"=="/?" call :HELPER & exit /B
+
+rem Place code for processing here:
+rem In general, avoid non-ASCII characters within functional code;
+rem use lower-case (for commands, sub-commands, verbs and keywords);
+rem use upper-case only for switches, variable names and `for` references;
+rem place single space between commands, switches and arguments;
+rem place single spaces around redirection operators too;
+rem avoid excessive line concatenation (by `&`); avoid line continuation (by `^`);
+rem put quotation marks around file and directory paths/names;
+rem insert explanatory comments using the `rem` command.
+(
+    rem Indent parenthesised blocks.
+)
+
+rem Return resulting output here.
+
+endlocal
+exit /B
+
+
+:SUB  rtn_return  ref_variable  val_value
+    ::Comment that describes purpose and usage of the sub-routine;
+    ::include the meanings of the aforementioned arguments (like:
+    ::`rtn_*` denote return values, so they hold variable names;
+    ::`ref_*` denote references, so they hold variable names too;
+    ::`val_*` denote values, so they hold immediate values).
+    setlocal DisableDelayedExpansion
+    
+    rem Define local constants here (names begin with `_`).
+    
+    rem Parse arguments here; check whether too few/many arguments are given;
+    
+    rem Place code for processing here.
+    
+    rem Return resulting output here; regard the `endlocal` barrier
+    rem (for `rtn_*` arguments, whose values need to survive it).
+    
+    endlocal
+    exit /B
+
+
+:HELPER
+    ::This sub-routine returns the help text embedded in this script preceded by `::::`;
+    ::note that `%`-expansion is only done when `%` occurs within a line of text, which
+    ::allows usage of argument references and variables; regard that each literal `%`
+    ::must be doubled to `%%`:
+    setlocal DisableDelayedExpansion
+    for /F "delims=" %%H in ('^""%__AppDir__%findstr.exe" /B /L "::::" "%~f0"^"') do (
+        set "LINE=%%H"
+        setlocal EnableDelayedExpansion
+        if not "!LINE:%%=!"=="!LINE!" (
+            set "LINE=!LINE:"=""!^"
+            for /F "delims=" %%G in ("!LINE!") do (
+                endlocal
+                call set "LINE=%%G"
+                setlocal EnableDelayedExpansion
+                set "LINE=!LINE:^^=^!"
+            )
+            set "LINE=!LINE:""="!^"
+        )
+        echo(!LINE:*::::=!
+        endlocal
+    )
+    endlocal
+    exit /B
+
+
+::::
+::::  USAGE:
+::::
+::::    %~nx0 [/optional] [/switch] {/alternative | /switches} parameter ...
+::::    %~nx0 /?
+::::
+::::  PARAMETERS:
+::::
+::::    parameter     required parameter (... means that more such are accepted)
+::::    /optional     optional switch
+::::    /switch       optional switch
+::::    /alternative  alternative switch
+::::    /switches     alternative switch
+::::    /?            displays this help text;
+::::
+::::  ERRORLEVEL:
+::::
+::::    0   successful completion;
+::::

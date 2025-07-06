@@ -1,0 +1,55 @@
+@cls
+@title Optional Title
+@echo off
+setlocal EnableExtensions DisableDelayedExpansion
+
+::Comment that describes purpose and usage of the script; this should also
+::contain (original) script name, version, date and author, as applicable.
+
+rem Define global constants (read-only variables) here (names begin with `_`).
+
+rem Initialise global variables (those accessed also by sub-routines) here,
+rem if any (names begin with `$`).
+
+rem Parse command line arguments and/or user input data here;
+rem regard cases when too few or too many arguments are provided;
+rem regard cases when user input is empty.
+
+rem Place code for processing here:
+rem In general, avoid non-ASCII characters within functional code;
+rem use lower-case (for commands, sub-commands, verbs and keywords);
+rem use upper-case only for switches, variable names and `for` references;
+rem place single space between commands, switches and arguments;
+rem place single spaces around redirection operators too;
+rem avoid excessive line concatenation (by `&`); avoid line continuation (by `^`);
+rem put quotation marks around file and directory paths/names;
+rem insert explanatory comments using the `rem` command.
+(
+    rem Indent parenthesised blocks.
+)
+
+rem Return resulting output here.
+
+endlocal
+exit /B
+
+
+:SUB  rtn_return  ref_variable  val_value
+    ::Comment that describes purpose and usage of the sub-routine;
+    ::include the meanings of the aforementioned arguments (like:
+    ::`rtn_*` denote return values, so they hold variable names;
+    ::`ref_*` denote references, so they hold variable names too;
+    ::`val_*` denote values, so they hold immediate values).
+    setlocal DisableDelayedExpansion
+    
+    rem Define local constants here (names begin with `_`).
+    
+    rem Parse arguments here; check whether too few/many arguments are given;
+    
+    rem Place code for processing here.
+    
+    rem Return resulting output here; regard the `endlocal` barrier
+    rem (for `rtn_*` arguments, whose values need to survive it).
+    
+    endlocal
+    exit /B
