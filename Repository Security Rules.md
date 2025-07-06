@@ -1,10 +1,13 @@
 # Repository Security Rules
 
 ## Objective
-To establish standard security requirements for all code repositories that are either original to or hard project forks by Hoyt Harness, including any development organizations he manages, e.g. Positronikal. These requirements apply to both local and online repositories, e.g. GitHub. The result should be that such repositories exist as enterprise-grade secure development environments with comprehensive security automation, testing, and governance. This policy adapts security best practices for different project types while maintaining consistency across repositories.
+To establish standard security requirements for all code repositories that are either original to or hard project forks by Hoyt Harness, including any development organizations he manages, e.g. Positronikal. These requirements apply to both local and online repositories, e.g. GitHub. The result should be that such repositories exist as secure development environments with comprehensive security automation, testing, and governance. This policy adapts security best practices for different project types while maintaining consistency across repositories.
 
 ### EXCEPTIONS:
 These rules do not apply to contributing repositories that will instead adhere to the rules of their respective origins.
+
+### ADDITIONAL REQUIREMENTS:
+For tools that may be used to generate or process digital evidence in legal proceedings, see the supplementary [Forensic Evidence Tool Standards](./Forensic%20Evidence%20Tool%20Standards.md) document for enhanced security and documentation requirements.
 
 ## Security Implementation Framework
 
@@ -283,4 +286,4 @@ A successfully hardened repository will have:
 - ✅ Incident response procedures
 - ✅ Compliance documentation (where applicable)
 
-This framework transforms any repository into a forensics-grade secure development environment suitable for enterprise and government use cases while maintaining developer productivity and code quality.
+This framework transforms any repository into a secure development environment suitable for professional and enterprise use cases while maintaining developer productivity and code quality.

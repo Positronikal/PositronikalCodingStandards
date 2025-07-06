@@ -6,6 +6,9 @@ To establish standard code formatting rules for all code repositories that are e
 ### EXCEPTIONS:
 These rules do not apply to contributing repositories that will instead adhere to the rules of their respective origins.
 
+### ADDITIONAL REQUIREMENTS:
+For tools that may be used to generate or process digital evidence in legal proceedings, see the supplementary [Forensic Evidence Tool Standards](./Forensic%20Evidence%20Tool%20Standards.md) document.
+
 ## Default Engineering Philosophy
 Default philosophy for all software engineering projects, including contributing forks, follows the [Unix Philosphy](http://www.catb.org/esr/writings/taoup/html/ch01s06.html 'Basics of the Unix Philosphy') very closely.
 

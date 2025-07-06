@@ -5,10 +5,11 @@
 4. Submit a pull request
 
 ## Guidelines
-- Follow PEP 8 style guidelines
+- Follow the coding standards specified in this repository
 - Add comprehensive tests for new features
 - Update documentation for API changes
 - Ensure backward compatibility
+- For forensic/investigative tools, additional requirements may apply (see project documentation)
 
 ## GIT AND GITHUB:
 Github is the sole provider of public repositories and Git is the sole
@@ -20,10 +21,13 @@ signed using GPG that authenticates the developer's identity are likely
 to be rejected.
 
 ## CODING STANDARDS AND STYLE:
-This is not GNU software, however coding style follows GNU Coding
-Standards published by Richard M. Stallman, Free Software Foundation,
-dated May 18, 2025 or later. GNU Coding Standards can be obtained
-from: <https://www.gnu.org/prep/standards/>
+Coding style follows the standards documented in this repository's
+coding standards documentation. For general formatting, we follow GNU Coding
+Standards published by Richard M. Stallman, Free Software Foundation.
+GNU Coding Standards can be obtained from: <https://www.gnu.org/prep/standards/>
+
+For projects involving forensic or investigative tools, additional
+standards may apply - see the project's specific documentation.
 
 ## LEGAL STANDING:
 For any person who makes a non-trivial contribution to the project,
