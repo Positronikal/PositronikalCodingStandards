@@ -22,7 +22,7 @@ These standards apply to:
 
 ```
 Settings > Password and authentication > Two-factor authentication
-✅ Authenticator app or security key required
+✅ Security key, authenticator app, or passkey required
 ✅ Recovery codes downloaded and stored securely
 ❌ SMS as primary method
 ```
