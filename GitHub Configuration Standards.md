@@ -59,6 +59,14 @@ git config --global user.signingkey [KEY_ID]
 git config --global commit.gpgsign true
 ```
 
+##### Historical Key Retention for Forensic Evidence
+- **Retention Policy**: Maintain historical GPG keys in GitHub to preserve commit verification status
+- **Rationale**: For forensic evidence integrity, historical commits should remain cryptographically verifiable
+- **Legal Considerations**: Removing old keys causes historical commits to lose "Verified" status, potentially compromising evidence chains
+- **Best Practice**: Keep expired/old keys in GitHub account while using current key for new commits
+- **Active Key Management**: Ensure only current, non-expired key is configured in Git client for new commits
+- **Evidence Value**: Verified commit status provides cryptographic proof of authorship for legal proceedings
+
 ### Profile Configuration
 
 #### Public Profile
@@ -240,6 +248,9 @@ Repository access levels:
 
 #### Evidence Integrity
 - **Signed Commits**: Mandatory GPG signing for all commits
+- **Commit Verification Continuity**: Maintain all GPG keys used for signing commits to preserve verification status
+- **Historical Verification**: Verified commit status provides cryptographic proof of authorship for legal proceedings
+- **Key Lifecycle**: Retire keys in Git client configuration while retaining in GitHub for historical verification
 - **Branch Protection**: Prevent history modification on protected branches
 - **Backup Strategy**: Regular backups to immutable storage
 - **Hash Verification**: Periodic verification of repository integrity
