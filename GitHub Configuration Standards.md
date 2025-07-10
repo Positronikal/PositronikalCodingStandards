@@ -12,13 +12,17 @@ These standards apply to:
 
 ## User Account Configuration
 
-### Security Settings (Mandatory)
+### Security Settings (Recommended Best Practices)
+
+**Note**: These are recommended best practices for individual contributors. While strongly encouraged for security, these cannot be enforced by repository or organization settings and must be voluntarily adopted by developers.
 
 #### Two-Factor Authentication
-- **Requirement**: TOTP-based 2FA must be enabled
-- **Recommended**: Hardware security keys (FIDO2/WebAuthn) as primary method
+- **Recommendation**: TOTP-based 2FA should be enabled
+- **Preferred**: Hardware security keys (FIDO2/WebAuthn) as primary method
 - **Backup**: Recovery codes stored securely offline
-- **SMS**: Avoid SMS-based 2FA due to SIM swapping vulnerabilities
+- **Avoid**: SMS-based 2FA due to SIM swapping vulnerabilities
+
+**Rationale**: While 2FA can be enforced at the organization level, individual account security practices cannot be mandated across all contributing scenarios.
 
 ```
 Settings > Password and authentication > Two-factor authentication

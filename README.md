@@ -13,6 +13,12 @@ Comprehensive security framework covering CI/CD pipelines, dependency management
 ### [GitHub Configuration Standards](./GitHub%20Configuration%20Standards.md)
 Platform-specific configuration requirements for GitHub user accounts, organizations, and repositories. Covers security settings, access controls, audit requirements, and compliance features essential for professional development workflows.
 
+### [GitHub Actions Permissions Architecture](./GitHub%20Actions%20Permissions%20Architecture.md)
+Comprehensive guide to GitHub Actions permissions hierarchy, troubleshooting methodology, and configuration best practices. Includes critical discoveries about exact version matching requirements and systematic approaches to resolving permissions issues.
+
+### [Git Hooks Standards](./Git%20Hooks%20Standards.md)
+Automated enforcement of coding standards and security requirements using Husky. Provides immediate feedback through pre-commit formatting, secret detection, GPG verification, and commit message validation.
+
 ## Specialized Standards
 
 ### [Forensic Evidence Tool Standards](./Forensic%20Evidence%20Tool%20Standards.md)
@@ -45,6 +51,8 @@ The **[ref/](./ref/)** directory contains:
 1. Choose the appropriate repository template
 2. Follow the [Code Formatting Rules](./Code%20Formatting%20Rules.md)
 3. Implement the [Repository Security Rules](./Repository%20Security%20Rules.md) appropriate to your project's security requirements
+4. Set up [Git Hooks Standards](./Git%20Hooks%20Standards.md) for automated enforcement
+5. Configure [GitHub Configuration Standards](./GitHub%20Configuration%20Standards.md) for repository management
 
 ### For Forensic/Investigative Tools
 1. Follow all general project requirements above
@@ -55,8 +63,9 @@ The **[ref/](./ref/)** directory contains:
 The standards are designed to be:
 - **Scalable**: Start with core requirements, add complexity as needed
 - **Modular**: Pick and choose components appropriate to your project
-- **Practical**: Based on real-world development experience and industry best practices
+- **Practical**: Based on real-world development experience and systematic testing
 - **Legally Aware**: Address compliance and legal discovery requirements where applicable
+- **Battle-Tested**: Incorporate lessons learned from actual implementation and troubleshooting
 
 ## Language Support
 

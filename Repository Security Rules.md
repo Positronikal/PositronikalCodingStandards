@@ -62,7 +62,50 @@ updates:
       - "[maintainer-username]"
 ```
 
-### Phase 2: CI/CD Security Pipeline
+#### 2.2 GitHub Actions Security and Testing
+
+**Actions Allowlist Configuration**
+- **Principle**: Use repository-level allowlists for granular control
+- **Avoid**: Organization-level restrictive allowlists that prevent customization
+- **For comprehensive GitHub Actions permissions guidance, see [GitHub Actions Permissions Architecture](./GitHub%20Actions%20Permissions%20Architecture.md).**
+
+**Version Specification Requirements**
+```yaml
+# ✅ Recommended patterns:
+actions/checkout@*           # GitHub official actions support wildcards
+github/codeql-action@*       # GitHub official actions support wildcards
+withastro/action@v3          # Third-party actions often require exact versions
+actions/deploy-pages@v4      # Deployment actions often require exact versions
+
+# ❌ Unreliable patterns:
+third-party/action@*         # May not work - test with exact versions
+```
+
+**Transitive Dependency Discovery**
+- **Hidden Dependencies**: Actions may internally call other actions not listed in workflows
+- **Detection Method**: Remove suspected unused actions and test workflow execution
+- **Documentation**: Error messages will reveal required transitive dependencies
+- **Example**: `withastro/action@v3` internally requires `oven-sh/setup-bun@v2`
+
+**Systematic Testing Methodology**
+```bash
+# Create tracking mechanism for permission changes
+echo "1" > TESTFILE
+git add TESTFILE
+git commit -m "test: permissions configuration - 1"
+git push
+
+# Monitor GitHub Actions tab for results
+# Iterate with incremental changes
+# Document working configurations
+```
+
+**Allowlist Optimization Process**
+1. **Baseline**: Start with working configuration
+2. **Analysis**: Compare allowlist with actual workflow file requirements
+3. **Testing**: Remove suspected unused actions in batches
+4. **Validation**: Use workflow execution errors to identify true requirements
+5. **Documentation**: Record final optimized configuration
 
 #### 2.1 Enhanced GitHub Actions Workflows
 
