@@ -56,3 +56,12 @@ dkms.conf
 # Mac trash
 .DS_Store
 .fseventsd
+
+# Windows trash
+*.ini
+System Volume Information
+
+# Web-related
+.cache
+dist
+node_modules
