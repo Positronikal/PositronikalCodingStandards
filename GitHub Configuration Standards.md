@@ -56,11 +56,15 @@ ssh-add ~/.ssh/github_ed25519
 gpg --full-generate-key
 
 # Add to GitHub
-gpg --armor --export [KEY_ID]
+gpg --armor --export YOUR_KEY_ID
 
 # Configure Git signing
-git config --global user.signingkey [KEY_ID]
+git config --global user.signingkey YOUR_KEY_ID
 git config --global commit.gpgsign true
+
+# Verify configuration
+git config --global --get user.signingkey
+git config --global --get commit.gpgsign
 ```
 
 ##### Historical Key Retention for Forensic Evidence

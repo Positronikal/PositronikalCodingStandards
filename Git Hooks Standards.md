@@ -60,11 +60,10 @@ fi
 
 # Verify GPG signing configuration
 echo "   Verifying GPG configuration..."
-if ! git config user.signingkey > /dev/null; then
-    echo "⚠️  GPG signing key not configured!"
-    echo "   Please configure your GPG key: git config user.signingkey YOUR_KEY_ID"
-    echo "   Then enable signing: git config commit.gpgsign true"
-    echo "   Continuing anyway, but remember to sign your commits!"
+if ! git config --global user.signingkey > /dev/null; then
+    echo "⚠️  GPG signing not configured!"
+    echo "   See: GitHub Configuration Standards.md#gpg-commit-signing"
+    echo "   Continuing anyway, but commits won't be signed!"
 fi
 
 echo "✅ Pre-commit checks completed!"
@@ -230,9 +229,12 @@ echo "Installing Git hooks..."
 pnpm install
 pnpm run prepare
 
-echo "Configuring Git..."
-git config commit.gpgsign true
-git config user.signingkey [YOUR_GPG_KEY]
+echo "Verifying Git configuration..."
+# Check GPG configuration (setup instructions in GitHub Configuration Standards.md)
+if ! git config --global commit.gpgsign | grep -q "true"; then
+    echo "📝 Note: GPG signing not enabled. Configure it following:"
+    echo "   GitHub Configuration Standards.md#gpg-commit-signing"
+fi
 
 echo "Testing hooks..."
 echo "test" > .test-file
