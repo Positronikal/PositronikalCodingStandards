@@ -3,11 +3,7 @@
 ## Objective
 To establish standard code formatting rules for all code repositories that are either original to or hard project forks by Hoyt Harness, including any development organizations he manages, e.g. Positronikal. These requirements apply to both local and online repositories, e.g. GitHub. The result should be that such repositories exist as standardized development environments readable by all. This policy adapts existing code rules and best practices for different programming languages and data structures while maintaining consistency across repositories.
 
-### EXCEPTIONS:
-These rules do not apply to contributing repositories that will instead adhere to the rules of their respective origins.
-
-### ADDITIONAL REQUIREMENTS:
-For tools that may be used to generate or process digital evidence in legal proceedings, see the supplementary [Forensic Evidence Tool Standards](./Forensic%20Evidence%20Tool%20Standards.md) document.
+See [COMMON.md](./COMMON.md) for common exceptions and additional requirements.
 
 ## Default Engineering Philosophy
 Default philosophy for all software engineering projects, including contributing forks, follows the [Unix Philosphy](http://www.catb.org/esr/writings/taoup/html/ch01s06.html 'Basics of the Unix Philosphy') very closely.
