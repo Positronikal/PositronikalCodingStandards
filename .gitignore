@@ -20,6 +20,7 @@ Thumbs.db
 *.sublime-*
 
 # Temporary files
+etc/
 *.tmp
 *.bak
 *.log
