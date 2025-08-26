@@ -4,18 +4,18 @@ A comprehensive framework for establishing consistent, secure, and maintainable 
 
 ## Core Standards
 
-### [Code Formatting Rules](./Code%20Formatting%20Rules.md 'Code Formatting Rules')
+### [Code Formatting Rules](./standards/Code%20Formatting%20Rules.md 'Code Formatting Rules')
 Establishes standard code formatting and engineering philosophy based on Unix principles and GNU Coding Standards. Includes language-specific guidelines and best practices for maintainable, readable code.
 
-### [Repository Security Rules](./Repository%20Security%20Rules.md 'Repository Security Rules')
+### [Repository Security Rules](./standards/Repository%20Security%20Rules.md 'Repository Security Rules')
 Comprehensive security framework covering CI/CD pipelines, dependency management, vulnerability scanning, and security automation. Scales from basic security practices to enterprise-grade protections.
 
-### [GitHub Configuration Standards](./GitHub%20Configuration%20Standards.md 'GitHub Configuration Standards')
+### [GitHub Configuration Standards](./standards/GitHub%20Configuration%20Standards.md 'GitHub Configuration Standards')
 Platform-specific configuration requirements for GitHub user accounts, organizations, and repositories. Covers security settings, access controls, audit requirements, and compliance features essential for professional development workflows.
 
 ## Specialized Standards
 
-### [Forensic Evidence Tool Standards](./Forensic%20Evidence%20Tool%20Standards.md 'Forensic Evidence Tool Standards')
+### [Forensic Evidence Tool Standards](./standards/Forensic%20Evidence%20Tool%20Standards.md 'Forensic Evidence Tool Standards')
 Additional requirements for tools that may be used to generate or process digital evidence in legal proceedings. Addresses Daubert Standard compliance, legal discovery preparedness, and enhanced documentation requirements.
 
 ## Repository Templates
@@ -40,12 +40,12 @@ The **[ref/](./ref/ 'ref/')** directory contains:
 
 ### For General Projects
 1. Choose the appropriate repository template
-2. Follow the [Code Formatting Rules](./Code%20Formatting%20Rules.md 'Code Formatting Rules')
-3. Implement the [Repository Security Rules](./Repository%20Security%20Rules.md 'Repository Security Rules') appropriate to your project's security requirements
+2. Follow the [Code Formatting Rules](./standards/Code%20Formatting%20Rules.md 'Code Formatting Rules')
+3. Implement the [Repository Security Rules](./standards/Repository%20Security%20Rules.md 'Repository Security Rules') appropriate to your project's security requirements
 
 ### For Forensic/Investigative Tools
 1. Follow all general project requirements above
-2. Additionally implement [Forensic Evidence Tool Standards](./Forensic%20Evidence%20Tool%20Standards.md 'Forensic Evidence Tool Standards')
+2. Additionally implement [Forensic Evidence Tool Standards](./standards/Forensic%20Evidence%20Tool%20Standards.md 'Forensic Evidence Tool Standards')
 3. Consider legal compliance requirements from project inception
 
 ### Implementation Approach
@@ -98,8 +98,8 @@ Based on the Unix Philosophy emphasizing:
 - Extensibility for future needs
 
 ## Getting Started
-1. **Review** the [Code Formatting Rules](./Code%20Formatting%20Rules.md 'Code Formatting Rules') for the engineering philosophy and general requirements
-2. **Assess** your project's security needs using the [Repository Security Rules](./Repository%20Security%20Rules.md 'Repository Security Rules')
+1. **Review** the [Code Formatting Rules](./standards/Code%20Formatting%20Rules.md 'Code Formatting Rules') for the engineering philosophy and general requirements
+2. **Assess** your project's security needs using the [Repository Security Rules](./standards/Repository%20Security%20Rules.md 'Repository Security Rules')
 3. **Determine** if specialized requirements apply (e.g. forensic tools)
 4. **Copy** the appropriate repository template as your starting point
 5. **Customize** the templates to your specific project needs
@@ -109,6 +109,9 @@ These standards are themselves subject to continuous improvement. See [CONTRIBUT
 
 ## License
 This framework is licensed under GPL-3.0. See [COPYING](./COPYING.md 'COPYING') for details. The license applies to the framework documentation itself, not to tools developed using these guidelines.
+
+## Future Improvements
+- The `repo-template` should be updated to reflect the new structure of the standards documents.
 
 ---
 
