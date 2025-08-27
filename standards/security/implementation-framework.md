@@ -56,7 +56,7 @@ updates:
 **Actions Allowlist Configuration**
 - **Principle**: Use repository-level allowlists for granular control
 - **Avoid**: Organization-level restrictive allowlists that prevent customization
-- **For comprehensive GitHub Actions permissions guidance, see [GitHub Actions Permissions Architecture](../GitHub%20Actions%20Permissions%20Architecture.md).**
+- **For comprehensive GitHub Actions permissions guidance, see [../GitHub%20Actions%20Permissions%20Architecture.md](../GitHub%20Actions%20Permissions%20Architecture.md).**
 
 **Version Specification Requirements**
 ```yaml
