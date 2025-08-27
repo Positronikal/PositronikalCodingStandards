@@ -13,6 +13,9 @@
 ## Where To Get Help
 <...>
 
+## Adherence to Standards
+This project adheres to the [Positronikal Coding Standards](https://github.com/positronikal/coding-standards/tree/main/standards). All contributors are expected to be familiar with these standards.
+
 ## Repository Map
 The following are subdirectories and root files you may find in this repository. Not all of these are present or requirefd in every repository.
 
