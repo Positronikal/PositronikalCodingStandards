@@ -110,9 +110,6 @@ These standards are themselves subject to continuous improvement. See [CONTRIBUT
 ## License
 This framework is licensed under GPL-3.0. See [COPYING](./COPYING.md 'COPYING') for details. The license applies to the framework documentation itself, not to tools developed using these guidelines.
 
-## Future Improvements
-- The `repo-template` should be updated to reflect the new structure of the standards documents.
-
 ---
 
 *This framework reflects 20+ years of software development experience across government, enterprise, and open source environments, with particular emphasis on security, forensics, and digital investigation use cases.*
