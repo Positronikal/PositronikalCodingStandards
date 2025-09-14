@@ -36,6 +36,72 @@ The **[ref/](./ref/ 'ref/')** directory contains:
 - Industry standard references for various programming languages
 - Linting and code quality tool configurations
 
+## Automated Standards Validation
+
+### Positronikal Standards Checker
+This repository includes an automated validation tool to help ensure your projects comply with these standards. The `positronikal_standards_check` module provides comprehensive pytest-compatible testing for repository structure, code formatting, security requirements, and forensic tool standards.
+
+**Integration Instructions**
+1. Copy the checker module to your project:
+```bash
+cp -r positronikal_standards_check/ /path/to/your/project/
+```
+
+2. Install **pytest** if not already available:
+```bash
+pip install pytest
+```
+
+3. Run standards validation:
+```bash
+# Run all standards checks
+pytest positronikal_standards_check/
+
+# Run specific validation categories
+pytest positronikal_standards_check/tests/test_file_requirements.py
+pytest positronikal_standards_check/tests/test_security_compliance.py
+```
+
+**CI/CD Integration**
+Add to your GitHub Actions workflow (`.github/workflows/standards.yml`):
+```yaml
+name: Standards Compliance
+on: [push, pull_request]
+jobs:
+  standards-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: pip install pytest
+      - name: Run standards validation
+        run: pytest positronikal_standards_check/ -v
+```
+
+**Pre-commit Integration**
+Add to your `.pre-commit-hooks.yaml`:
+```yaml
+repos:
+  - repo: local
+    hooks:
+      - id: positronikal-standards
+        name: Positronikal Standards Check
+        entry: pytest positronikal_standards_check/
+        language: system
+        pass_filenames: false
+```
+
+The checker validates:
+- Required documentation files and structure
+- Code formatting compliance (.editorconfig, line endings, encoding)
+- Security framework implementation
+- Build system requirements (GNU Make, configure scripts)
+- Forensic tool standards (when applicable)
+
 ## Using These Standards
 
 ### For General Projects

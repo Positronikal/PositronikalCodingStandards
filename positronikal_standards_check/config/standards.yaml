@@ -1,0 +1,237 @@
+# Positronikal Standards Configuration
+# This file maps requirements from standards documents to validation checks
+
+version: "1.0.0"
+name: "Positronikal Coding Standards"
+
+# File requirements from standards documents
+file_requirements:
+  required:
+    - README.md
+    - CONTRIBUTING.md
+    - .gitignore
+    
+  license_options:  # At least one required
+    - COPYING.md
+    - COPYING.LESSER.md
+    - LICENSE.md
+    - LICENSE.CC.md
+    
+  recommended:
+    - AUTHORS.md
+    - BUGS.md
+    - SECURITY.md
+    - USING.md
+    - .editorconfig
+    
+  github:
+    - .github/SECURITY.md
+    - .github/CODEOWNERS
+    - .github/dependabot.yml
+    - .github/workflows/ci.yml
+    - .github/workflows/codeql.yml
+    
+  github_templates:
+    - .github/ISSUE_TEMPLATE/bug_report.md
+    - .github/ISSUE_TEMPLATE/feature_request.md
+    - .github/pull_request_template.md
+    
+  standard_directories:
+    - src
+    - test
+    - docs
+    
+  forensic:  # Additional for forensic tools
+    - METHODOLOGY.md
+    - VALIDATION.md
+    - LEGAL.md
+
+# Build system requirements
+build_system:
+  npm:
+    required_packages:
+      husky: "^9.1.7"
+      lint-staged: "^15.5.0"
+      prettier: "^3.5.3"
+    required_scripts:
+      prepare: "husky"
+      pre-commit: "lint-staged"
+      
+  git_hooks:
+    - .husky/pre-commit
+    - .husky/commit-msg
+    
+  gnu_make:  # For compiled languages
+    - configure
+    - Makefile.am
+    
+  github_actions:
+    version_pinning: true
+    allow_wildcards_for_official: true  # actions/* can use wildcards
+    minimum_permissions: true
+
+# Code formatting standards
+code_standards:
+  max_line_length: 79
+  indentation: spaces  # spaces or tabs
+  line_endings: lf     # lf or crlf
+  encoding: utf-8
+  trim_trailing_whitespace: true
+  insert_final_newline: true
+  
+  # Language-specific linters
+  linters:
+    python:
+      command: ["ruff", "check"]
+      extensions: [".py"]
+    shell:
+      command: ["shellcheck"]
+      extensions: [".sh", ".bash"]
+    go:
+      command: ["golangci-lint", "run"]
+      extensions: [".go"]
+    javascript:
+      command: ["eslint"]
+      extensions: [".js", ".jsx"]
+    typescript:
+      command: ["eslint"]
+      extensions: [".ts", ".tsx"]
+    css:
+      command: ["stylelint"]
+      extensions: [".css", ".scss", ".less"]
+    html:
+      command: ["htmlhint"]
+      extensions: [".html", ".htm"]
+    perl:
+      command: ["perlcritic"]
+      extensions: [".pl", ".pm"]
+    powershell:
+      command: ["PSScriptAnalyzer"]
+      extensions: [".ps1", ".psm1"]
+    java:
+      command: ["spotbugs", "-textui"]
+      extensions: [".java"]
+    c:
+      command: ["cppcheck"]
+      extensions: [".c", ".h"]
+    cpp:
+      command: ["cppcheck"]
+      extensions: [".cpp", ".cc", ".cxx", ".hpp"]
+
+# Security requirements
+security:
+  required_files:
+    - .github/SECURITY.md
+    - .github/dependabot.yml
+    
+  github_features:
+    branch_protection:
+      required_reviewers: 2
+      dismiss_stale_reviews: true
+      require_signed_commits: true
+    dependabot_alerts: true
+    codeql_scanning: true
+    secret_scanning: true
+    
+  commit_signing:
+    required: true
+    
+  dependency_management:
+    lock_files_required: true  # package-lock.json, go.sum, etc.
+    
+  file_restrictions:
+    max_file_size_mb: 10
+    prohibited_extensions:
+      - .exe
+      - .dll
+      - .so
+      - .dylib
+      - .bin
+      - .com
+      - .app
+      - .deb
+      - .rpm
+      - .dmg
+      
+  sast_tools:
+    python: ["bandit", "-r"]
+    go: ["gosec", "./..."]
+    javascript: ["eslint", "--ext", ".js,.jsx", "."]
+    java: ["spotbugs", "-textui"]
+    ruby: ["brakeman"]
+    php: ["psalm", "--show-info=false"]
+    
+  vulnerability_sla:
+    critical: 48  # hours
+    high: 168     # hours (7 days)
+    medium: 720   # hours (30 days)
+    low: 2160     # hours (90 days)
+
+# Forensic tool standards (additional requirements)
+forensic:
+  required_documentation:
+    - METHODOLOGY.md
+    - VALIDATION.md
+    - LEGAL.md
+    
+  code_requirements:
+    deterministic: true
+    reproducible: true
+    chain_of_custody: true
+    
+  testing:
+    reference_datasets: true
+    error_rates_documented: true
+    coverage_minimum: 90  # percent
+    
+  legal_compliance:
+    daubert_standard: true
+    expert_witness_info: true
+    court_admissibility: true
+
+# Validation severity levels
+severity_levels:
+  fail:     # Violations that must be fixed
+    - missing_required_files
+    - no_license_file
+    - hardcoded_secrets
+    - unsigned_commits
+    - excessive_file_size
+    - prohibited_binaries
+    
+  warning:  # Should be addressed but not blocking
+    - missing_recommended_files
+    - missing_github_templates
+    - unpinned_action_versions
+    - no_editorconfig
+    - linter_not_available
+    
+  info:     # Informational only
+    - empty_directories
+    - no_tests_found
+    - legacy_build_system
+
+# Exclusions and overrides
+exclusions:
+  paths:
+    - .git
+    - node_modules
+    - vendor
+    - venv
+    - .venv
+    - dist
+    - build
+    - target
+    - coverage
+    - .pytest_cache
+    - __pycache__
+    
+  files:
+    - "*.min.js"
+    - "*.min.css"
+    - "*.map"
+    - "*.lock"
+    - "*.sum"
+
+# Custom rules (can be extended by users)
+custom_rules: []

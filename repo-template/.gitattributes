@@ -17,38 +17,43 @@
 * text=auto
 
 # SOURCE CODE
-*.bat           text eol=crlf
-*.class         binary
-*.coffee        text
-*.css           text
-*.htm           text
-*.html          text
-*.inc           text
-*.ini           text eol=crlf
-*.java          text
-*.js            text
-*.json          text
-*.jsx           text
-*.less          text
-*.od            text
-*.onlydata      text
-*.php           text
-*.pl            text
-*.properties    text
-*.py            text
-*.rb            text
-*.sass          text
-*.scm           text
-*.scss          text
-*.sh            text eol=lf
-*.sql           text
-*.styl          text
-*.tag           text
-*.ts            text
-*.tsx           text
-*.txt           text eol=crlf
-*.xml           text
-*.xhtml         text
+*.{bat,[bB][aA][tT]}    text eol=crlf
+*.c                     text
+*.class                 binary
+*.{cmd,[cC][mM][dD]}    text eol=crlf
+*.coffee                text
+*.cpp                   text
+*.css                   text
+*.h                     text
+*.hpp                   text
+*.htm                   text
+*.html                  text
+*.inc                   text
+*.ini                   text eol=crlf
+*.java                  text
+*.js                    text
+*.json                  text
+*.jsx                   text
+*.less                  text
+*.od                    text
+*.onlydata              text
+*.php                   text
+*.pl                    text
+*.properties            text
+*.py                    text
+*.rb                    text
+*.sass                  text
+*.scm                   text
+*.scss                  text
+*.sh                    text eol=lf
+*.sql                   text
+*.styl                  text
+*.tag                   text
+*.ts                    text
+*.tsx                   text
+*.txt                   text eol=crlf
+*.xml                   text
+*.xhtml                 text
 
 # DOCKER
 *.dockerignore  text
@@ -63,6 +68,7 @@ Dockerfile      text
 *.mkdn          text
 *.mdtxt         text
 *.mdtext        text
+*.rst           text
 *.txt           text
 AUTHORS         text
 CHANGELOG       text
@@ -185,6 +191,7 @@ Procfile    text
 *.jar   binary
 *.rar   binary
 *.tar   binary
+*.tgz   binary
 *.zip   binary
 
 # FONTS
