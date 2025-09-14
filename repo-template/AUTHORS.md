@@ -1,5 +1,4 @@
 # Authors
-- Hoyt Harness
 - <...>
 
 This project is a (contributing || project) fork from: <...>
