@@ -103,21 +103,23 @@ Core pipeline with language-specific adaptations:
 
 **Python Projects:**
 ```yaml
-- name: Type checking with pyright
+- name: Lint and security rules
   run: |
-    npm install -g pyright
+    pip install ruff
+    ruff check --select S .  # S = flake8-bandit security rules
+
+- name: Type checking
+  run: |
+    pip install pyright
     pyright
 
-- name: Security vulnerability scan
+- name: Dependency vulnerability scan
   run: |
-    pip install safety
-    safety check --json || echo "Safety check completed"
-
-- name: SAST with Bandit
-  run: |
-    pip install bandit
-    bandit -r src/ -f json -o bandit-report.json
+    pip install pip-audit
+    pip-audit
 ```
+
+Note: semantic security analysis (injection, auth flaws, hardcoded secrets, etc.) is handled by the Claude Code security review hook and the `claude-code-security-review` GitHub Action. The steps above cover fast pattern checks and dependency vulnerabilities, which are outside the scope of the Claude review.
 
 **Node.js Projects:**
 ```yaml

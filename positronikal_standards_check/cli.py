@@ -13,7 +13,7 @@ import logging
 if __name__ == "__main__":
     sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from positronikal_standards_check import PositronikalStandardsChecker
+from positronikal_standards_check import PositronikalStandardsChecker, __version__
 
 
 def setup_logging(verbose: bool):
@@ -115,7 +115,7 @@ Available check types:
     parser.add_argument(
         "--version",
         action="version",
-        version="%(prog)s 1.0.0"
+        version=f"%(prog)s {__version__}"
     )
     
     args = parser.parse_args()
