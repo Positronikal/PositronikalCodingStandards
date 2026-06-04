@@ -1,5 +1,7 @@
 # Implementation Checklist by Repository Type
 
+All repository types should have the pre-push security review hook configured. See [Git Hooks Standards](../Git%20Hooks%20Standards.md) for the Claude Code pre-push hook that provides semantic vulnerability analysis before each push.
+
 ### Web Application Repositories
 - [ ] OWASP Top 10 vulnerability testing
 - [ ] Content Security Policy validation

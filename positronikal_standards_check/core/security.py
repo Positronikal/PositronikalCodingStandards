@@ -46,9 +46,9 @@ class SecurityValidator:
         (r'passwd\s*=\s*["\'][^"\']{8,}["\']', "Hardcoded password")
     ]
     
-    # SAST tools by language
+    # SAST tools by language (fast, pattern-based; complements Claude security review)
     SAST_TOOLS = {
-        "python": ["bandit", "-r"],
+        "python": ["ruff", "check", "--select", "S"],
         "go": ["gosec", "./..."],
         "javascript": ["eslint", "--ext", ".js,.jsx", "."],
         "java": ["spotbugs", "-textui"],

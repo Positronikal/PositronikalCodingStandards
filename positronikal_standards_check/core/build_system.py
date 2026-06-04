@@ -30,10 +30,11 @@ class BuildSystemValidator:
     # GNU Make files
     GNU_MAKE_FILES = ["configure", "Makefile.am", "Makefile.in", "Makefile"]
     
-    # Git hook files
+    # Git hook files (JS/TS projects using Husky only)
     GIT_HOOKS = {
         ".husky/pre-commit": "Pre-commit hook",
-        ".husky/commit-msg": "Commit message validation hook"
+        ".husky/commit-msg": "Commit message validation hook",
+        ".husky/pre-push": "Security review pre-push hook"
     }
     
     def __init__(self, repo_path: Path):

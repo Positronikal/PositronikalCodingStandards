@@ -1,7 +1,7 @@
 # Positronikal Standards Configuration
 # This file maps requirements from standards documents to validation checks
 
-version: "1.0.0"
+version: "2.2.0"
 name: "Positronikal Coding Standards"
 
 # File requirements from standards documents
@@ -48,6 +48,7 @@ file_requirements:
 
 # Build system requirements
 build_system:
+  # npm/Husky requirements apply to JS/TS projects only (package.json present)
   npm:
     required_packages:
       husky: "^9.1.7"
@@ -56,10 +57,12 @@ build_system:
     required_scripts:
       prepare: "husky"
       pre-commit: "lint-staged"
-      
+
+  # JS/TS hook paths (Husky); non-JS/TS repos use native .git/hooks/
   git_hooks:
     - .husky/pre-commit
     - .husky/commit-msg
+    - .husky/pre-push
     
   gnu_make:  # For compiled languages
     - configure
@@ -153,8 +156,9 @@ security:
       - .rpm
       - .dmg
       
+  # Fast pattern-based SAST; complements Claude Code pre-push semantic review
   sast_tools:
-    python: ["bandit", "-r"]
+    python: ["ruff", "check", "--select", "S"]
     go: ["gosec", "./..."]
     javascript: ["eslint", "--ext", ".js,.jsx", "."]
     java: ["spotbugs", "-textui"]
