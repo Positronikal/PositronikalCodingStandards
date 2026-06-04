@@ -1,12 +1,194 @@
 # Git Hooks Standards
 
 ## Objective
-Establish standardized Git hooks using Husky to automatically enforce coding standards, security requirements, and quality gates at the developer level. This provides immediate feedback and prevents non-compliant code from entering repositories.
 
-## Required Implementation
+Establish standardized Git hooks to automatically enforce coding standards and quality gates at the developer level. Hooks provide immediate feedback and catch issues before they reach a remote repository.
 
-### Core Dependencies
-All repositories must include:
+See [COMMON.md](./COMMON.md) for common exceptions. These standards do not apply to contributing forks.
+
+## Hook Architecture
+
+Two gates apply to all Positronikal repositories:
+
+| Hook | Trigger | Purpose | Blocking |
+|------|---------|---------|---------|
+| `pre-commit` | Every commit | Fast, language-native formatting and static analysis | Yes |
+| `commit-msg` | Every commit | Conventional commit message format | Yes |
+| `pre-push` | Before push to remote | Semantic security review via Claude Code | No (informational) |
+
+The pre-commit and commit-msg hooks block the commit on failure. The pre-push security review is informational — it displays findings but does not prevent the push.
+
+## Pre-Commit Hook
+
+The pre-commit hook runs fast, language-native checks. It should complete in seconds. Adapt the template below for the repository's primary language.
+
+### Go
+
+```bash
+#!/usr/bin/env bash
+set -e
+
+unformatted=$(gofmt -l .)
+if [ -n "$unformatted" ]; then
+    echo "Unformatted Go files:"
+    echo "$unformatted"
+    echo "Run: gofmt -w ."
+    exit 1
+fi
+
+go vet ./...
+echo "Pre-commit checks passed."
+```
+
+### Python
+
+```bash
+#!/usr/bin/env bash
+set -e
+
+ruff check .
+ruff format --check .
+echo "Pre-commit checks passed."
+```
+
+### C
+
+```bash
+#!/usr/bin/env bash
+set -e
+
+cppcheck --error-exitcode=1 --enable=warning,style src/
+echo "Pre-commit checks passed."
+```
+
+### bash/shell
+
+```bash
+#!/usr/bin/env bash
+set -e
+
+changed=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.sh$' || true)
+if [ -n "$changed" ]; then
+    echo "$changed" | xargs shellcheck
+fi
+echo "Pre-commit checks passed."
+```
+
+### PowerShell
+
+```bash
+#!/usr/bin/env bash
+set -e
+
+changed=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.ps1$' || true)
+if [ -n "$changed" ]; then
+    echo "$changed" | while read -r f; do
+        pwsh -Command "Invoke-ScriptAnalyzer -Path '$f' -Severity Error"
+    done
+fi
+echo "Pre-commit checks passed."
+```
+
+### File Size and Binary Restrictions
+
+Append to any pre-commit hook:
+
+```bash
+# Reject files larger than 10MB
+git diff --cached --name-only | while read -r file; do
+    if [ -f "$file" ]; then
+        size=$(stat -f%z "$file" 2>/dev/null || stat -c%s "$file" 2>/dev/null)
+        if [ "$size" -gt 10485760 ]; then
+            echo "File $file exceeds 10MB ($size bytes). Use Git LFS or a package manager."
+            exit 1
+        fi
+    fi
+done
+
+# Reject binary executables
+if git diff --cached --name-only | grep -qE '\.(exe|dll|so|dylib)$'; then
+    echo "Binary executables detected in staged files. Use package managers or build artifacts."
+    exit 1
+fi
+```
+
+## Commit Message Hook
+
+All repositories enforce the [Conventional Commits](https://www.conventionalcommits.org/) format. This applies to JS/TS projects using Husky as well.
+
+```bash
+#!/usr/bin/env bash
+
+commit_regex='^(feat|fix|docs|style|refactor|test|chore|security|perf)(\(.+\))?: .{1,50}'
+
+if ! grep -qE "$commit_regex" "$1"; then
+    echo "Commit message does not follow conventional commit format."
+    echo ""
+    echo "  Format:  type(scope): description"
+    echo "  Types:   feat, fix, docs, style, refactor, test, chore, security, perf"
+    echo ""
+    echo "  Examples:"
+    echo "    feat: add triage acquisition module"
+    echo "    fix(auth): correct session token expiry"
+    echo "    docs: update contributing guidelines"
+    exit 1
+fi
+
+if grep -qiE "(security|vulnerability|cve|exploit|breach)" "$1"; then
+    echo "Security-related commit. Ensure security review has been completed before pushing."
+fi
+
+echo "Commit message validated."
+```
+
+## Pre-Push Hook: Claude Security Review
+
+The pre-push hook invokes Claude Code for a semantic security review of all branch changes against origin. The review is **informational** — it does not block the push. Review any findings before completing the push.
+
+### Requirements
+
+- Claude Code CLI installed and authenticated
+- `.claude/commands/security-review.md` present in the repository root (see Repo Template below)
+
+### Hook
+
+```bash
+#!/usr/bin/env bash
+# pre-push: Claude Code security review (informational)
+
+if ! command -v claude >/dev/null 2>&1; then
+    echo "Claude Code not installed. Skipping security review."
+    echo "  Install from: https://claude.ai/download"
+    exit 0
+fi
+
+if [ ! -f ".claude/commands/security-review.md" ]; then
+    echo ".claude/commands/security-review.md not found. Skipping security review."
+    exit 0
+fi
+
+DIFF=$(git diff --merge-base origin/HEAD 2>/dev/null || git diff HEAD~1 2>/dev/null)
+
+if [ -z "$DIFF" ]; then
+    echo "No changes to review."
+    exit 0
+fi
+
+echo "Running security review..."
+claude -p "$(cat .claude/commands/security-review.md)
+
+DIFF:
+$DIFF" 2>&1
+
+echo ""
+echo "Security review complete. Address any findings above before pushing."
+exit 0
+```
+
+## JS/TS Projects: Husky
+
+For JavaScript and TypeScript repositories, Husky manages the pre-commit hook. Husky requires Node.js and is scoped to JS/TS projects only — do not add it to Go, C, Python, or shell projects.
+
 ```json
 {
   "devDependencies": {
@@ -19,282 +201,106 @@ All repositories must include:
     "pre-commit": "lint-staged"
   },
   "lint-staged": {
-    "*.{js,ts,astro,css,html,md}": [
-      "prettier --write"
-    ]
+    "*.{js,ts,jsx,tsx}": ["eslint --fix", "prettier --write"],
+    "*.{css,scss}": ["prettier --write"],
+    "*.{html,md}": ["prettier --write"]
   }
 }
 ```
 
-### Required Git Hooks
-
-#### Pre-commit Hook (`.husky/pre-commit`)
-Must implement:
-- **Code Formatting**: Automatic prettier formatting via lint-staged
-- **Secret Detection**: Scan for potential secrets/sensitive data
-- **GPG Configuration Check**: Verify GPG signing setup
-- **Security Pattern Detection**: Check for TODO/FIXME items
-- **File Size Validation**: Prevent large binary commits
+The commit-msg and pre-push hooks above still apply to JS/TS projects. Wire them through Husky:
 
 ```bash
-#!/usr/bin/env sh
-# Husky pre-commit hook for Positronikal repositories
-# Enforces coding standards and security requirements
-
-echo "🔍 Positronikal pre-commit checks..."
-
-# Run lint-staged (prettier formatting)
-echo "📝 Formatting code with Prettier..."
-pnpm run pre-commit
-
-# Security checks
-echo "🔒 Running security checks..."
-
-# Check for potential secrets
-echo "   Checking for potential secrets..."
-if git diff --cached --name-only | xargs grep -l -E "(password|secret|key|token|api_key)" 2>/dev/null; then
-    echo "❌ Potential secrets detected in staged files!"
-    echo "   Please review and remove any sensitive information before committing."
-    exit 1
-fi
-
-# Verify GPG signing configuration
-echo "   Verifying GPG configuration..."
-if ! git config --global user.signingkey > /dev/null; then
-    echo "⚠️  GPG signing not configured!"
-    echo "   See: GitHub Configuration Standards.md#gpg-commit-signing"
-    echo "   Continuing anyway, but commits won't be signed!"
-fi
-
-echo "✅ Pre-commit checks completed!"
-```
-
-#### Commit Message Hook (`.husky/commit-msg`)
-Must enforce:
-- **Conventional Commit Format**: type(scope): description
-- **Security Classification**: Special handling for security commits
-- **Message Length Limits**: Reasonable subject line length
-- **Required Information**: Proper commit categorization
-
-```bash
-#!/usr/bin/env sh
-# Husky commit-msg hook for Positronikal repositories
-# Enforces conventional commit format and security requirements
-
-commit_regex='^(feat|fix|docs|style|refactor|test|chore|security|perf)(\(.+\))?: .{1,50}'
-
-if ! grep -qE "$commit_regex" "$1"; then
-    echo "❌ Invalid commit message format!"
-    echo ""
-    echo "📝 Commit messages must follow conventional commit format:"
-    echo "   type(scope): description"
-    echo ""
-    echo "📋 Valid types: feat, fix, docs, style, refactor, test, chore, security, perf"
-    echo ""
-    echo "✅ Examples:"
-    echo "   feat: add new terminal command for coding standards"
-    echo "   fix(security): patch XSS vulnerability in user input"
-    echo "   docs: update contributing guidelines"
-    echo "   security: implement additional CSP headers"
-    echo ""
-    exit 1
-fi
-
-# Check for security keywords
-if grep -qE "(security|vulnerability|cve|exploit|attack|breach)" "$1"; then
-    echo "🔒 Security-related commit detected."
-    echo "   Ensure proper security review has been completed."
-fi
-
-echo "✅ Commit message format validated!"
-```
-
-## Language-Specific Extensions
-
-### JavaScript/TypeScript Projects
-Add to lint-staged configuration:
-```json
-{
-  "lint-staged": {
-    "*.{js,ts,jsx,tsx}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "*.{css,scss,sass}": [
-      "prettier --write"
-    ]
-  }
-}
-```
-
-### Python Projects
-```json
-{
-  "lint-staged": {
-    "*.py": [
-      "black --check",
-      "isort --check-only",
-      "flake8"
-    ]
-  }
-}
-```
-
-### Go Projects
-```json
-{
-  "lint-staged": {
-    "*.go": [
-      "gofmt -w",
-      "go vet",
-      "golint"
-    ]
-  }
-}
-```
-
-## Security Enhancements
-
-### Enhanced Secret Detection
-For sensitive repositories, implement additional patterns:
-```bash
-# Enhanced secret patterns
-SECRET_PATTERNS="(password|secret|key|token|api_key|private_key|access_key|auth_token|bearer|oauth|jwt|ssh_key|pgp|gpg)"
-EMAIL_PATTERNS="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
-URL_PATTERNS="https?://[^\s]+"
-
-if git diff --cached --name-only | xargs grep -l -E "$SECRET_PATTERNS" 2>/dev/null; then
-    echo "❌ Potential secrets detected!"
-    exit 1
-fi
-```
-
-### File Size and Type Restrictions
-```bash
-# Check for large files (>10MB)
-git diff --cached --name-only | while read file; do
-    if [ -f "$file" ]; then
-        size=$(stat -f%z "$file" 2>/dev/null || stat -c%s "$file" 2>/dev/null)
-        if [ "$size" -gt 10485760 ]; then
-            echo "❌ File $file is larger than 10MB ($size bytes)"
-            exit 1
-        fi
-    fi
-done
-
-# Check for forbidden file types
-if git diff --cached --name-only | grep -E "\.(exe|dll|so|dylib|bin)$"; then
-    echo "❌ Binary executables detected in commit!"
-    echo "   Consider using package managers or build artifacts instead."
-    exit 1
-fi
+echo 'bash .git/hooks/commit-msg "$1"' > .husky/commit-msg
+echo 'bash .git/hooks/pre-push' > .husky/pre-push
+chmod +x .husky/commit-msg .husky/pre-push
 ```
 
 ## Forensic Evidence Tool Enhancements
 
-For repositories subject to Forensic Evidence Tool Standards, add:
+For repositories subject to [Forensic Evidence Tool Standards](./Forensic%20Evidence%20Tool%20Standards.md), append to the pre-commit hook:
 
-### Chain of Custody Verification
 ```bash
-# Verify chain of custody documentation
-if git diff --cached --name-only | grep -E "(evidence|forensic|acquisition)" >/dev/null; then
-    echo "🔍 Forensic-related changes detected."
-    echo "   Ensure proper chain of custody documentation is included."
-    
-    # Check for required documentation
-    if ! git diff --cached --name-only | grep -E "(CHAIN_OF_CUSTODY|EVIDENCE_LOG)" >/dev/null; then
-        echo "⚠️  Consider adding chain of custody documentation."
+# Chain of custody notification
+if git diff --cached --name-only | grep -qE "(evidence|forensic|acquisition)"; then
+    echo "Forensic-related changes detected."
+    echo "  Ensure proper chain of custody documentation is included."
+    if ! git diff --cached --name-only | grep -qE "(CHAIN_OF_CUSTODY|EVIDENCE_LOG)"; then
+        echo "  Consider adding chain of custody documentation."
     fi
 fi
-```
 
-### Legal Compliance Reminders
-```bash
-# Daubert Standard compliance check
-if git diff --cached --name-only | grep -E "(analysis|algorithm|calculation)" >/dev/null; then
-    echo "⚖️  Code changes may affect Daubert Standard compliance."
-    echo "   Ensure proper documentation and validation testing."
+# Daubert compliance reminder
+if git diff --cached --name-only | grep -qE "(analysis|algorithm|calculation)"; then
+    echo "Changes may affect Daubert Standard compliance."
+    echo "  Ensure proper documentation and validation testing."
 fi
 ```
 
-## Installation and Setup
+## Hook Installation
 
-### Automatic Installation
-Include in repository setup scripts:
+### Non-JS/TS Projects
+
+The repo template provides hook files in `hooks/`. Copy and make executable:
+
 ```bash
-#!/bin/bash
-# setup-repository.sh
+cp hooks/pre-commit .git/hooks/pre-commit
+cp hooks/commit-msg .git/hooks/commit-msg
+cp hooks/pre-push .git/hooks/pre-push
+chmod +x .git/hooks/pre-commit .git/hooks/commit-msg .git/hooks/pre-push
+```
 
-echo "Installing Git hooks..."
+Customize `pre-commit` for the repository's language before copying.
+
+### JS/TS Projects
+
+```bash
 pnpm install
 pnpm run prepare
-
-echo "Verifying Git configuration..."
-# Check GPG configuration (setup instructions in GitHub Configuration Standards.md)
-if ! git config --global commit.gpgsign | grep -q "true"; then
-    echo "📝 Note: GPG signing not enabled. Configure it following:"
-    echo "   GitHub Configuration Standards.md#gpg-commit-signing"
-fi
-
-echo "Testing hooks..."
-echo "test" > .test-file
-git add .test-file
-git commit -m "test: verify hooks installation" --no-verify
-git reset HEAD~1
-rm .test-file
-
-echo "✅ Repository setup completed!"
+# Wire commit-msg and pre-push as described in the Husky section above
 ```
 
-### Hook Bypass (Emergency Use Only)
-For emergency situations, hooks can be bypassed:
+## Repo Template
+
+The [repo-template](../repo-template/) should include:
+
+- `hooks/pre-commit` — language-neutral stub; customize per project
+- `hooks/commit-msg` — conventional commits; copy as-is
+- `hooks/pre-push` — Claude security review; copy as-is
+- `.claude/commands/security-review.md` — sourced from the [claude-code-security-review](https://github.com/anthropics/claude-code-security-review) repository; keep current with upstream
+
+## Hook Bypass (Emergency Use Only)
+
 ```bash
-# Emergency bypass (use sparingly!)
 git commit --no-verify -m "emergency: critical hotfix"
-
-# Must be followed by:
-git commit --amend -S -m "emergency: critical hotfix - retroactive compliance"
 ```
 
-## Integration with CI/CD
+Document the bypass reason in the commit message and follow up with a compliant commit.
 
-### Validation in CI Pipeline
-Ensure CI validates the same requirements:
+## CI/CD Integration
+
+GitHub-public repositories replicate the pre-push security review in CI using the `claude-code-security-review` GitHub Action. The local pre-push hook and the GitHub Action are parallel mechanisms running the same review criteria in different contexts: Claude Code session locally, Claude API in CI.
+
+For CI validation of commit message format:
+
 ```yaml
-- name: Validate Git Hooks Compliance
+- name: Validate commit messages
   run: |
-    # Verify all commits follow conventional format
-    git log --oneline --pretty=format:"%s" origin/main..HEAD | while read msg; do
+    git log --pretty=format:"%s" origin/main..HEAD | while read -r msg; do
       if ! echo "$msg" | grep -qE '^(feat|fix|docs|style|refactor|test|chore|security|perf)(\(.+\))?: .{1,50}'; then
-        echo "❌ Invalid commit message: $msg"
+        echo "Invalid commit message: $msg"
         exit 1
       fi
     done
-    
-    # Verify all commits are GPG signed
-    git log --show-signature origin/main..HEAD | grep -q "Good signature" || {
-      echo "❌ Unsigned commits detected"
-      exit 1
-    }
 ```
 
-## Maintenance and Updates
+## Maintenance
 
-### Hook Updates
-- Hooks must be updated when standards evolve
-- Test hook changes in development repositories first
-- Document breaking changes in hook behavior
-
-### Developer Onboarding
-- Include hook setup in contributor guidelines
-- Provide troubleshooting guide for common hook failures
-- Maintain examples of compliant commit messages
-
-### Performance Monitoring
-- Monitor hook execution time
-- Optimize patterns and checks for speed
-- Provide bypass mechanisms for legitimate edge cases
+- Update language tooling versions in pre-commit hooks when project language versions change
+- Re-source `.claude/commands/security-review.md` from upstream when significant updates are released
+- Test hook changes in a scratch repository before deploying to active repos
+- Husky version updates: test in JS/TS projects only
 
 ---
 
-*This Git Hooks Standard integrates with Code Formatting Rules, Repository Security Rules, and GitHub Configuration Standards to provide comprehensive automated enforcement of Positronikal coding standards.*
+*This Git Hooks Standard integrates with Code Formatting Rules, Repository Security Rules, and GitHub Configuration Standards to provide automated enforcement of Positronikal coding standards.*
