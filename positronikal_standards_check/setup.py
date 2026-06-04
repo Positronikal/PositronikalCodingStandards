@@ -15,7 +15,8 @@ else:
 
 setup(
     name="positronikal-standards-check",
-    version="1.0.0",
+    use_scm_version={"write_to": "positronikal_standards_check/_version.py"},
+    setup_requires=["setuptools_scm"],
     author="Positronikal",
     author_email="hoyt.harness@gmail.com",
     description="Validate repository compliance with Positronikal coding standards",

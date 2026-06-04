@@ -83,6 +83,15 @@ ref/
 *.so.*
 *.dylib
 
+# Python build artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+build/
+.eggs/
+positronikal_standards_check/_version.py
+
 # Temporary files
 etc/
 *.tmp
