@@ -8,6 +8,7 @@ See [./COMMON.md](./COMMON.md) for common exceptions and additional requirements
 This document is broken down into the following sections:
 
 * [Implementation Framework](./security/implementation-framework.md)
+* [Secrets Handling](./security/secrets-handling.md)
 * [Testing Framework](./security/testing-framework.md)
 * [Automation and Tooling](./security/automation-and-tooling.md)
 * [Documentation and Compliance](./security/documentation-and-compliance.md)

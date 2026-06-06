@@ -7,10 +7,10 @@
 Security scanning operates in two layers, each with a distinct role:
 
 **Layer 1 — Pre-commit (fast, local, language-native)**
-Fast pattern-based checks integrated into the pre-commit hook. These catch obvious issues at commit time with no external dependencies. See [Git Hooks Standards](../Git%20Hooks%20Standards.md) for hook implementation.
+Fast pattern-based checks integrated into the pre-commit hook. These catch obvious issues at commit time with no external dependencies. Includes language-native linting and gitleaks secret scanning (deterministic — blocks secrets before they enter git history). See [Git Hooks Standards](../Git%20Hooks%20Standards.md) for hook implementation and [Secrets Handling](./secrets-handling.md) for the gitleaks integration.
 
 **Layer 2 — Pre-push and CI (semantic, thorough)**
-Semantic security review via Claude Code. This is the primary vulnerability detection mechanism — it understands code intent, not just patterns, and covers injection attacks, authentication flaws, hardcoded secrets, weak cryptography, deserialization vulnerabilities, and data exposure. It runs as an informational pre-push hook locally and as a GitHub Action in CI for GitHub-public repositories.
+Semantic security review via Claude Code. This is the primary vulnerability detection mechanism — it understands code intent, not just patterns, and covers injection attacks, authentication flaws, secrets in logic flow, weak cryptography, deserialization vulnerabilities, and data exposure. It runs as an informational pre-push hook locally and as a GitHub Action in CI for GitHub-public repositories. Layer 2 is the backstop for cases Layer 1 cannot catch; both layers are required.
 
 Language-native SAST tools (gosec, Ruff security rules, etc.) complement Layer 2 by catching language-specific issues quickly at commit time. They do not replace the Claude security review.
 
