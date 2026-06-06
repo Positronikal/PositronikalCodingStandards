@@ -89,9 +89,31 @@ fi
 echo "Pre-commit checks passed."
 ```
 
+### Secret Scanning
+
+Append to any pre-commit hook, after language checks:
+
+```bash
+# Secret scanning (gitleaks)
+if command -v gitleaks >/dev/null 2>&1; then
+    if ! gitleaks protect --staged --no-banner; then
+        echo "Secret scanning failed. Remove secrets before committing."
+        echo "  If this is a false positive, add an exclusion to .gitleaks.toml."
+        exit 1
+    fi
+else
+    echo "Warning: gitleaks not installed. Secret scanning skipped."
+    echo "  Install: https://github.com/gitleaks/gitleaks/releases"
+fi
+```
+
+`--staged` scans only files staged for the current commit, preventing secrets from
+entering git history. See [Secrets Handling](./security/secrets-handling.md) for
+installation, `.gitleaks.toml` false-positive configuration, and runtime patterns.
+
 ### File Size and Binary Restrictions
 
-Append to any pre-commit hook:
+Append to any pre-commit hook, after secret scanning:
 
 ```bash
 # Reject files larger than 10MB
