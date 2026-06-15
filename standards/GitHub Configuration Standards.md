@@ -166,24 +166,57 @@ Organization Settings > Code security and analysis
 
 ### Branch Protection Rules
 
-#### Default Branch Protection
+Positronikal's branch protection model is two-phase. Phase 1 is the default
+for every original or hard-fork repository. Phase 2 is situational and is
+**not** applied by default — see below.
+
+#### Phase 1 — Hardening (default for all original and hard-fork repos)
+
 ```yaml
-Protection Rules for 'main' branch:
+Protection Rules for default branch:
+✅ Require signed commits (required_signatures)
+✅ Include administrators in restrictions (enforce_admins)
+✅ Disallow force pushes
+✅ Disallow branch deletion
+✅ Require linear history — where the repository's workflow is merge-free
+```
+
+Phase 1 hardens against accidents and tampering without changing who can
+push or how. Apply it to every Positronikal-original or hard-fork repository
+regardless of contribution model.
+
+#### Phase 2 — Pull Request Gating (situational, not default)
+
+```yaml
+Additional protection (apply only when the conditions below are met):
 ✅ Require pull request reviews before merging
   - Required approving reviews: 2 minimum
-  - Dismiss stale reviews when new commits are pushed
   - Require review from code owners
-  - Restrict push from admins
-
 ✅ Require status checks to pass before merging
-  - Require branches to be up to date before merging
-  - Status checks: [CI, Security Scan, Code Quality]
-
-✅ Require conversation resolution before merging
-✅ Require signed commits
-✅ Require linear history
-✅ Include administrators in restrictions
 ```
+
+`required_pull_request_reviews` does not only gate the merge button — with
+`enforce_admins` enabled (Phase 1), it blocks **direct pushes to the default
+branch entirely**, including for repository owners. `required_status_checks`
+alone has no effect on direct pushes; it only gates PR merges.
+
+For repositories where Hoyt is the sole or primary committer using a
+signed-direct-push workflow, **do not enable Phase 2.** The enforcement gate
+is local: a blocking `pre-push` hook runs the repository's CI script
+(`hooks/ci-check.sh` or equivalent), and `.github/workflows/ci.yml` runs the
+*same script* for confirmation. GitHub's CI is confirmation, not discovery —
+gating an already-passed local check behind a GitHub round-trip reintroduces
+the push → fail → fix → re-push cycle this model exists to avoid.
+
+Enable Phase 2 only when a repository begins accepting **external
+contributions with write access** to the default branch — i.e., when someone
+other than the maintainer can push directly and a review gate is the only way
+to keep unreviewed changes off the default branch. Decide per repository when
+its contribution model changes; do not apply by default.
+
+Repositories where Positronikal is a contributing fork follow the upstream
+maintainer's branch protection and review norms instead — see
+[COMMON.md](./COMMON.md).
 
 #### Development Branch Strategy
 - **Feature Branches**: Short-lived, descriptive names

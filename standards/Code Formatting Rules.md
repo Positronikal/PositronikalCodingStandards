@@ -47,6 +47,8 @@ Default philosophy for all software engineering projects, including contributing
 ## Language-specific Formatting
 Formatting requirements, rules, or best practices specific to any coding language take priority in all source files. See the [ref/](./ref 'ref/') subdirectory in this repository.
 
+Where this document names a specific tool for a language, that tool is canonical for compliance — it is what hooks and CI actually run. Do not list a second tool for the same job (e.g., a second formatter alongside a formatter already named); redundant tooling adds maintenance burden without improving compliance. These tooling choices apply to Positronikal-original and hard-fork repositories; contributing forks follow the upstream maintainer's tooling per [COMMON.md](./COMMON.md).
+
 ### Formatting Resources for Selected Languages
 - **AWK:**
   - [Gawk: Effective AWK Programming](https://www.gnu.org/software/gawk/manual/ 'Gawk: Effective AWK Programming')
@@ -72,14 +74,15 @@ Formatting requirements, rules, or best practices specific to any coding languag
   - Linters: [PSScriptAnalyzer](https://learn.microsoft.com/en-us/powershell/utility-modules/psscriptanalyzer/overview?view=ps-modules 'PSScriptAnalyzer')
 - **Python 3:**
   - [PEP 8 – Style Guide for Python Code](https://peps.python.org/pep-0008/ 'PEP 8 – Style Guide for Python Code')
-  - Linters: [Ruff](https://docs.astral.sh/ruff/ 'Ruff')
+  - Linting and formatting: [Ruff](https://docs.astral.sh/ruff/ 'Ruff') (`ruff check`, `ruff format`) — one tool for both; do not add Black
 
 ## Default Formatting
 Default rules for source files are found in the [GNU Coding Standards](https://www.gnu.org/prep/standards/ 'GNU Coding Standards'). See the [ref/](./ref 'ref/') subdirectory in this repository.
 
 ### Primary Considerations
 1. **Line Length:**
-  - Keep lines of code to a maximum of 79 characters.
+  - The GNU Coding Standards' 79-character limit is the baseline for all languages.
+  - Override the baseline where a language's specified style guide or tool default in this document differs (e.g., Python formatted with Ruff defaults to 88 characters; Go has no enforced limit under `gofmt`). This override applies only to the languages and tools this document specifies — it does not license ad hoc limits elsewhere.
   - Longer lines should be broken into smaller, logically separated lines.
 2. **Indentation:**
   - Use spaces for indentation, not tabs.
