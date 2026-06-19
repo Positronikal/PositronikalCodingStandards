@@ -1,0 +1,6 @@
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/positronikal_standards_check"
+    schedule:
+      interval: "weekly"
