@@ -31,27 +31,31 @@ class ValidationResult:
         """Record a passing check."""
         self.passed.append({
             "check": check_name,
+            "status": "pass",
             "message": message or "Check passed"
         })
-        
+
     def add_fail(self, check_name: str, message: str):
         """Record a failing check."""
         self.failed.append({
-            "check": check_name, 
+            "check": check_name,
+            "status": "fail",
             "message": message
         })
-        
+
     def add_warning(self, check_name: str, message: str):
         """Record a warning."""
         self.warnings.append({
             "check": check_name,
+            "status": "warning",
             "message": message
         })
-        
+
     def add_error(self, check_name: str, message: str):
         """Record an error during checking."""
         self.errors.append({
             "check": check_name,
+            "status": "error",
             "message": message
         })
         

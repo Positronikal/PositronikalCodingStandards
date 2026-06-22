@@ -267,6 +267,49 @@ class TestBuildSystem:
         )
         
     @pytest.mark.positronikal_build
+    def test_non_js_hooks_missing(self, temp_repo):
+        """Test detection of missing hooks/ on a non-JS repo (no package.json)."""
+        checker = PositronikalStandardsChecker(str(temp_repo))
+        results = checker.check_build()
+
+        assert any(
+            r["check"] == "git_hook_hooks_pre-push" and r["status"] == "fail"
+            for r in results.failed
+        )
+        assert any(
+            r["check"] == "git_hook_hooks_ci-check.sh" and r["status"] == "fail"
+            for r in results.failed
+        )
+        assert any(
+            r["check"] == "security_review_command" and r["status"] == "fail"
+            for r in results.failed
+        )
+
+    @pytest.mark.positronikal_build
+    def test_non_js_hooks_present(self, temp_repo):
+        """Test passing validation when hooks/ and security-review.md exist."""
+        hooks_dir = temp_repo / "hooks"
+        hooks_dir.mkdir()
+        for name in ("pre-commit", "commit-msg", "ci-check.sh", "pre-push"):
+            (hooks_dir / name).write_text("#!/usr/bin/env bash\necho ok\n")
+
+        commands_dir = temp_repo / ".claude" / "commands"
+        commands_dir.mkdir(parents=True)
+        (commands_dir / "security-review.md").write_text("# Security Review")
+
+        checker = PositronikalStandardsChecker(str(temp_repo))
+        results = checker.check_build()
+
+        assert any(
+            r["check"] == "git_hook_hooks_pre-push" and r["status"] == "pass"
+            for r in results.passed
+        )
+        assert any(
+            r["check"] == "security_review_command" and r["status"] == "pass"
+            for r in results.passed
+        )
+
+    @pytest.mark.positronikal_build
     def test_missing_npm_scripts(self, temp_repo):
         """Test detection of missing npm scripts."""
         # Create package.json without required scripts

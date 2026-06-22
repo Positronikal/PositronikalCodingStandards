@@ -36,6 +36,16 @@ class BuildSystemValidator:
         ".husky/commit-msg": "Commit message validation hook",
         ".husky/pre-push": "Security review pre-push hook"
     }
+
+    # Git hook files (non-JS/TS projects per Git Hooks Standards.md)
+    NON_JS_HOOKS = {
+        "hooks/pre-commit": "Pre-commit hook",
+        "hooks/commit-msg": "Commit message validation hook",
+        "hooks/ci-check.sh": "Local CI/CD single-source-of-truth script",
+        "hooks/pre-push": "Local CI/CD gate + security review pre-push hook"
+    }
+
+    SECURITY_REVIEW_COMMAND = ".claude/commands/security-review.md"
     
     def __init__(self, repo_path: Path):
         """
@@ -59,7 +69,9 @@ class BuildSystemValidator:
         if (self.repo_path / "package.json").exists():
             results.extend(self._check_npm_requirements())
             results.extend(self._check_git_hooks())
-            
+        else:
+            results.extend(self._check_non_js_hooks())
+
         # Check for GNU Make files
         results.extend(self._check_gnu_make())
         
@@ -185,6 +197,49 @@ class BuildSystemValidator:
                 
         return results
         
+    def _check_non_js_hooks(self) -> List[Dict]:
+        """Check for required git hooks on non-JS/TS projects (Git Hooks Standards.md)."""
+        results = []
+
+        for hook_path, description in self.NON_JS_HOOKS.items():
+            full_path = self.repo_path / hook_path
+
+            if full_path.exists():
+                if os.name != "nt" and not os.access(full_path, os.X_OK):
+                    results.append({
+                        "check": f"git_hook_{hook_path.replace('/', '_')}",
+                        "status": "warning",
+                        "message": f"Git hook exists but is not executable: {hook_path}"
+                    })
+                else:
+                    results.append({
+                        "check": f"git_hook_{hook_path.replace('/', '_')}",
+                        "status": "pass",
+                        "message": f"Git hook exists: {hook_path}"
+                    })
+            else:
+                results.append({
+                    "check": f"git_hook_{hook_path.replace('/', '_')}",
+                    "status": "fail",
+                    "message": f"Missing git hook: {hook_path} ({description})"
+                })
+
+        security_review_path = self.repo_path / self.SECURITY_REVIEW_COMMAND
+        if security_review_path.exists():
+            results.append({
+                "check": "security_review_command",
+                "status": "pass",
+                "message": f"Security review command found: {self.SECURITY_REVIEW_COMMAND}"
+            })
+        else:
+            results.append({
+                "check": "security_review_command",
+                "status": "fail",
+                "message": f"Missing security review command: {self.SECURITY_REVIEW_COMMAND}"
+            })
+
+        return results
+
     def _check_gnu_make(self) -> List[Dict]:
         """Check for GNU Make build system."""
         results = []
