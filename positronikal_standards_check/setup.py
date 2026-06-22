@@ -11,11 +11,18 @@ readme_file = Path(__file__).parent / "README.md"
 if readme_file.exists():
     long_description = readme_file.read_text(encoding="utf-8")
 else:
-    long_description = "A pytest-compatible tool for validating repository compliance with Positronikal coding standards."
+    long_description = (
+        "A pytest-compatible tool for validating repository compliance "
+        "with Positronikal coding standards."
+    )
 
 setup(
     name="positronikal-standards-check",
-    use_scm_version={"write_to": "positronikal_standards_check/_version.py"},
+    use_scm_version={
+        "root": "..",
+        "relative_to": __file__,
+        "write_to": "positronikal_standards_check/_version.py",
+    },
     setup_requires=["setuptools_scm"],
     author="Positronikal",
     author_email="hoyt.harness@gmail.com",
@@ -24,9 +31,7 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/Positronikal/PositronikalCodingStandards",
     packages=find_packages(),
-    package_data={
-        "positronikal_standards_check": ["config/*.yaml"]
-    },
+    package_data={"positronikal_standards_check": ["config/*.yaml"]},
     python_requires=">=3.8",
     install_requires=[
         "pytest>=7.0.0",
@@ -35,18 +40,20 @@ setup(
     extras_require={
         "dev": [
             "pytest-cov>=4.0.0",
-            "black>=23.0.0",
             "ruff>=0.1.0",
+            "safety>=3.0.0",
         ]
     },
     entry_points={
         "console_scripts": [
             "positronikal-check=positronikal_standards_check.cli:main",
-            "psc=positronikal_standards_check.cli:main",  # Short alias
+            # psc is a short alias for positronikal-check
+            "psc=positronikal_standards_check.cli:main",
         ],
         "pytest11": [
-            "positronikal_standards = positronikal_standards_check.tests.test_standards",
-        ]
+            "positronikal_standards = "
+            "positronikal_standards_check.tests.test_standards",
+        ],
     },
     classifiers=[
         "Development Status :: 4 - Beta",

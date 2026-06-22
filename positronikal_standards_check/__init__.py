@@ -10,6 +10,7 @@ try:
 except ImportError:
     try:
         from importlib.metadata import version
+
         __version__ = version("positronikal-standards-check")
     except Exception:
         __version__ = "unknown"

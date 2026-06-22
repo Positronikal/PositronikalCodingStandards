@@ -1,0 +1,5 @@
+[lint]
+select = ["E", "F", "S"]
+
+[lint.per-file-ignores]
+"positronikal_standards_check/tests/**" = ["S101"]  # assert is the normal idiom in pytest test files

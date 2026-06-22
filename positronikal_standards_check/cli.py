@@ -19,10 +19,7 @@ from positronikal_standards_check import PositronikalStandardsChecker, __version
 def setup_logging(verbose: bool):
     """Configure logging based on verbosity."""
     level = logging.DEBUG if verbose else logging.INFO
-    logging.basicConfig(
-        level=level,
-        format="%(levelname)s: %(message)s"
-    )
+    logging.basicConfig(level=level, format="%(levelname)s: %(message)s")
 
 
 def main():
@@ -60,83 +57,72 @@ Available check types:
   code     - Check code formatting standards only
   security - Check security requirements only
   forensic - Check forensic tool standards only
-        """
+        """,
     )
-    
+
     parser.add_argument(
         "repository",
         help="Path to repository to validate (default: current directory)",
         nargs="?",
-        default="."
+        default=".",
     )
-    
+
     parser.add_argument(
         "--check",
         choices=["all", "files", "build", "code", "security", "forensic"],
         default="all",
-        help="Type of checks to run (default: all)"
+        help="Type of checks to run (default: all)",
     )
-    
+
     parser.add_argument(
         "--forensic",
         action="store_true",
-        help="Include forensic tool standards in validation"
+        help="Include forensic tool standards in validation",
     )
-    
+
+    parser.add_argument("--config", help="Path to custom configuration file")
+
     parser.add_argument(
-        "--config",
-        help="Path to custom configuration file"
-    )
-    
-    parser.add_argument(
-        "--verbose", "-v",
+        "--verbose",
+        "-v",
         action="store_true",
-        help="Show verbose output including passing checks"
+        help="Show verbose output including passing checks",
     )
-    
+
     parser.add_argument(
-        "--quiet", "-q",
-        action="store_true",
-        help="Suppress all output except errors"
+        "--quiet", "-q", action="store_true", help="Suppress all output except errors"
     )
-    
+
     parser.add_argument(
         "--strict",
         action="store_true",
-        help="Exit with non-zero status if any checks fail"
+        help="Exit with non-zero status if any checks fail",
     )
-    
+
     parser.add_argument(
-        "--json",
-        action="store_true",
-        help="Output results in JSON format"
+        "--json", action="store_true", help="Output results in JSON format"
     )
-    
+
     parser.add_argument(
-        "--version",
-        action="version",
-        version=f"%(prog)s {__version__}"
+        "--version", action="version", version=f"%(prog)s {__version__}"
     )
-    
+
     args = parser.parse_args()
-    
+
     # Setup logging
     if not args.quiet:
         setup_logging(args.verbose)
     else:
         logging.disable(logging.CRITICAL)
-        
+
     # Set environment variable for verbose output
     if args.verbose:
         os.environ["VERBOSE"] = "true"
-        
+
     try:
         # Initialize checker
-        checker = PositronikalStandardsChecker(
-            args.repository,
-            config_path=args.config
-        )
-        
+        checker = PositronikalStandardsChecker(args.repository, config_path=args.config)
+
         # Run appropriate checks
         if args.check == "all":
             results = checker.check_all(include_forensic=args.forensic)
@@ -153,28 +139,29 @@ Available check types:
         else:
             print(f"Unknown check type: {args.check}", file=sys.stderr)
             sys.exit(1)
-            
+
         # Output results
         if args.json:
             import json
+
             output = {
                 "repository": str(checker.repo_path),
                 "summary": results.get_summary(),
                 "passed": results.passed,
                 "failed": results.failed,
                 "warnings": results.warnings,
-                "errors": results.errors
+                "errors": results.errors,
             }
             print(json.dumps(output, indent=2))
         elif not args.quiet:
             results.print_report()
-            
+
         # Exit with appropriate code
         if args.strict and not results.is_passing:
             sys.exit(1)
         else:
             sys.exit(0)
-            
+
     except FileNotFoundError as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
@@ -188,6 +175,7 @@ Available check types:
         print(f"Unexpected error: {e}", file=sys.stderr)
         if args.verbose:
             import traceback
+
             traceback.print_exc()
         sys.exit(1)
 
