@@ -15,6 +15,7 @@ This document is broken down into the following sections:
 * [Documentation and Compliance](./security/documentation-and-compliance.md)
 * [Checklists](./security/checklists.md)
 * [Customization](./security/customization.md)
-* [Metrics](./security/metrics.md)
 
 This framework transforms any repository into a secure development environment suitable for professional and enterprise use cases while maintaining developer productivity and code quality.
+
+Hoyt Harness and Positronikal track their own implementation status, metrics, and rollout priority against this framework internally rather than in this public repository.
