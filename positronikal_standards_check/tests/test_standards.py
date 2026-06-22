@@ -2,8 +2,10 @@
 Pytest integration tests for Positronikal Standards Checker.
 """
 
+import os
 import sys
 import json
+import stat
 import tempfile
 from pathlib import Path
 import pytest
@@ -155,6 +157,10 @@ updates:
     (husky_dir / "pre-commit").write_text("#!/bin/sh\nnpx lint-staged")
     (husky_dir / "commit-msg").write_text("#!/bin/sh\necho 'Checking commit message'")
     (husky_dir / "pre-push").write_text("#!/bin/sh\nbash .git/hooks/pre-push")
+    for name in ("pre-commit", "commit-msg", "pre-push"):
+        path = husky_dir / name
+        mode = path.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
+        os.chmod(path, mode)  # noqa: S103 -- test fixture hook, not shipped output
 
     # Add sample source file
     # newline="" disables write_text's default platform newline
@@ -313,7 +319,10 @@ class TestBuildSystem:
         hooks_dir = temp_repo / "hooks"
         hooks_dir.mkdir()
         for name in ("pre-commit", "commit-msg", "ci-check.sh", "pre-push"):
-            (hooks_dir / name).write_text("#!/usr/bin/env bash\necho ok\n")
+            path = hooks_dir / name
+            path.write_text("#!/usr/bin/env bash\necho ok\n")
+            mode = path.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
+            os.chmod(path, mode)  # noqa: S103 -- test fixture hook, not shipped output
 
         commands_dir = temp_repo / ".claude" / "commands"
         commands_dir.mkdir(parents=True)
