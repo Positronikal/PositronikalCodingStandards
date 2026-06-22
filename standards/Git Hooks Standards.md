@@ -8,15 +8,17 @@ See [COMMON.md](./COMMON.md) for common exceptions. These standards do not apply
 
 ## Hook Architecture
 
-Two gates apply to all Positronikal repositories:
+Three gates apply to all Positronikal repositories:
 
 | Hook | Trigger | Purpose | Blocking |
 |------|---------|---------|---------|
 | `pre-commit` | Every commit | Fast, language-native formatting and static analysis | Yes |
 | `commit-msg` | Every commit | Conventional commit message format | Yes |
-| `pre-push` | Before push to remote | Semantic security review via Claude Code | No (informational) |
+| `pre-push` | Before push to remote | Local CI/CD gate (`hooks/ci-check.sh`) + semantic security review via Claude Code | Yes (CI/CD gate); No (security review) |
 
-The pre-commit and commit-msg hooks block the commit on failure. The pre-push security review is informational — it displays findings but does not prevent the push.
+The pre-commit and commit-msg hooks block the commit on failure. The `pre-push` security review is informational — it displays findings but does not prevent the push.
+
+**Local CI/CD is the gate; GitHub Actions is confirmation only.** `hooks/ci-check.sh` is the single source of truth for code-quality checks (lint, type-check, tests, SAST, dependency/license scan). It is invoked twice: by the blocking local `pre-push` hook, and by `.github/workflows/ci.yml` — both run the exact same script, so a local pass reliably predicts the CI verdict for the same commit. This is a deliberate alternative to GitHub-side gating (`required_pull_request_reviews`, `required_status_checks`): those block direct pushes outright or add a checkbox that does nothing once local CI/CD already gates the push, respectively. See [GitHub Configuration Standards](./GitHub%20Configuration%20Standards.md) for the branch-protection model this pairs with. GitHub-native security analysis (CodeQL, Dependabot) is independent of this gate and remains GitHub's own responsibility.
 
 ## Pre-Commit Hook
 
@@ -163,20 +165,37 @@ fi
 echo "Commit message validated."
 ```
 
-## Pre-Push Hook: Claude Security Review
+## Pre-Push Hook: Local CI/CD Gate + Claude Security Review
 
-The pre-push hook invokes Claude Code for a semantic security review of all branch changes against origin. The review is **informational** — it does not block the push. Review any findings before completing the push.
+The pre-push hook runs two steps. Step 1 (`hooks/ci-check.sh`) is **blocking** — push aborts on failure. Step 2 (Claude Code security review) is **informational** — it displays findings but does not block the push.
 
 ### Requirements
 
-- Claude Code CLI installed and authenticated
+- `hooks/ci-check.sh` present, containing the repository's lint/type-check/test/SAST/dependency checks (single source of truth, also called from `.github/workflows/ci.yml`)
+- Claude Code CLI installed and authenticated (security review step only)
 - `.claude/commands/security-review.md` present in the repository root (see Repo Template below)
 
 ### Hook
 
 ```bash
 #!/usr/bin/env bash
-# pre-push: Claude Code security review (informational)
+# pre-push: local CI/CD gate + informational security review
+#
+# 1. hooks/ci-check.sh — same checks as .github/workflows/ci.yml.
+#    BLOCKING: push aborts on failure. Local pass should reliably predict
+#    the CI verdict for the same commit; GitHub Actions runs are
+#    confirmation, not discovery.
+# 2. Claude Code security review — semantic, informational only.
+#    Findings are advisory; review them but they do not block the push.
+
+set -e
+
+echo "Running local CI checks (hooks/ci-check.sh)..."
+bash hooks/ci-check.sh
+
+echo ""
+echo "Local CI checks passed."
+echo ""
 
 if ! command -v claude >/dev/null 2>&1; then
     echo "Claude Code not installed. Skipping security review."
@@ -197,15 +216,17 @@ if [ -z "$DIFF" ]; then
 fi
 
 echo "Running security review..."
-claude -p "$(cat .claude/commands/security-review.md)
+PROMPT="$(cat .claude/commands/security-review.md)
 
-DIFF:
-$DIFF" 2>&1
+DIFF:"
+printf '%s\n%s\n' "$PROMPT" "$DIFF" | claude -p 2>&1 || echo "Security review failed to run (non-blocking)."
 
 echo ""
 echo "Security review complete. Address any findings above before pushing."
 exit 0
 ```
+
+The diff is piped to `claude -p` via stdin rather than passed as an argument — a large diff embedded directly in argv can exceed the OS argument-length limit (`Argument list too long`), and since this step runs under `set -e`, the resulting crash would block the push despite being documented as informational. The trailing `|| echo ...` guarantees the security-review step can never fail the push.
 
 ## JS/TS Projects: Husky
 
@@ -272,7 +293,7 @@ cp hooks/pre-push .git/hooks/pre-push
 chmod +x .git/hooks/pre-commit .git/hooks/commit-msg .git/hooks/pre-push
 ```
 
-Customize `pre-commit` for the repository's language before copying.
+Customize `pre-commit` and `hooks/ci-check.sh` for the repository's language before copying. `hooks/ci-check.sh` is called by `hooks/pre-push`, not copied into `.git/hooks/` itself.
 
 ### JS/TS Projects
 
@@ -284,12 +305,14 @@ pnpm run prepare
 
 ## Repo Template
 
-The [repo-template](../repo-template/) should include:
+The [repo-template](../repo-template/) includes:
 
 - `hooks/pre-commit` — language-neutral stub; customize per project
 - `hooks/commit-msg` — conventional commits; copy as-is
-- `hooks/pre-push` — Claude security review; copy as-is
+- `hooks/ci-check.sh` — language-neutral stub; customize per project (single source of truth, also wired into `.github/workflows/ci.yml`)
+- `hooks/pre-push` — local CI/CD gate + Claude security review; copy as-is
 - `.claude/commands/security-review.md` — sourced from the [claude-code-security-review](https://github.com/anthropics/claude-code-security-review) repository; keep current with upstream
+- `.gitattributes` — includes `/hooks/* text eol=lf` so hook shebangs survive on Windows checkouts
 
 ## Hook Bypass (Emergency Use Only)
 
