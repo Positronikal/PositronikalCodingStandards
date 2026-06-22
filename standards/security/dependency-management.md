@@ -156,6 +156,27 @@ following the two-policy model.
 C system dependencies. Monitor upstream security advisories (e.g., OpenSSL,
 libcurl CVE feeds) for libraries in use.
 
+### Ruby (Bundler)
+
+**Lock file:**
+
+```bash
+bundle install   # generate or update Gemfile.lock
+bundle install --frozen  # install from Gemfile.lock without re-resolving (CI)
+```
+
+Commit `Gemfile.lock` to version control.
+
+Bundler has no native soak-window equivalent to `uv`'s `exclude-newer` or npm's
+`min-release-age` — there is no config flag that excludes gem versions published
+within the last N days. Apply the two-policy model manually: Tier 1 vulnerability
+fixes via `bundle update <gem>` immediately; Tier 2 updates batched and reviewed
+after the soak period before running `bundle update`.
+
+**Audit:** `bundler-audit check --update` scans `Gemfile.lock` against the
+`ruby-advisory-db` vulnerability feed — Ruby's equivalent of `pip-audit`/`safety`.
+Run it as part of `hooks/ci-check.sh` for any repo with a `Gemfile`.
+
 ### bash/shell and PowerShell
 
 Scripts that depend on external commands should document those dependencies in a
