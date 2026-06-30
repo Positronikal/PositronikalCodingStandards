@@ -1,6 +1,7 @@
 # Security Policy
 
 ## Reporting a Vulnerability
+
 We take security vulnerabilities seriously. If you discover a security issue, please report it to us by following these steps:
 
 1. On GitHub, navigate to the main page of the repository.
@@ -11,6 +12,7 @@ We take security vulnerabilities seriously. If you discover a security issue, pl
 We will do our best to respond to your report within 48 hours.
 
 ## Security Standards
+
 This project adheres to the [Positronikal Repository Security Rules](https://github.com/Positronikal/PositronikalCodingStandards/blob/main/standards/Repository%20Security%20Rules.md). Please refer to these rules for more information on our security practices.
 
 ## Disclosure Policy
