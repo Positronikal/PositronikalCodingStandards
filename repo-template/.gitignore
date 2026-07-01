@@ -85,6 +85,7 @@ ref/
 
 # Temporary files
 etc/
+var/
 *.tmp
 *.bak
 *.log
