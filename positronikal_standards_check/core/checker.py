@@ -11,6 +11,7 @@ from .file_requirements import FileRequirementsValidator
 from .build_system import BuildSystemValidator
 from .code_standards import CodeStandardsValidator
 from .security import SecurityValidator
+from .versioning import VersioningValidator
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -144,6 +145,7 @@ class PositronikalStandardsChecker:
         self.build_validator = BuildSystemValidator(self.repo_path)
         self.code_validator = CodeStandardsValidator(self.repo_path)
         self.security_validator = SecurityValidator(self.repo_path)
+        self.versioning_validator = VersioningValidator(self.repo_path)
 
         logger.info(f"Initialized checker for repository: {self.repo_path}")
 
@@ -171,6 +173,9 @@ class PositronikalStandardsChecker:
         # Check security requirements
         self._run_security_checks()
 
+        # Check versioning requirements
+        self._run_versioning_checks()
+
         # Check forensic requirements if requested
         if include_forensic:
             self._run_forensic_checks()
@@ -195,6 +200,11 @@ class PositronikalStandardsChecker:
     def check_security(self) -> ValidationResult:
         """Run only security checks."""
         self._run_security_checks()
+        return self.results
+
+    def check_version(self) -> ValidationResult:
+        """Run only versioning checks."""
+        self._run_versioning_checks()
         return self.results
 
     def check_forensic(self) -> ValidationResult:
@@ -269,6 +279,23 @@ class PositronikalStandardsChecker:
         except Exception as e:
             self.results.add_error("security", str(e))
             logger.error(f"Error during security checks: {e}")
+
+    def _run_versioning_checks(self):
+        """Execute version management validations."""
+        logger.info("Checking versioning requirements...")
+
+        try:
+            versioning_results = self.versioning_validator.validate()
+            for result in versioning_results:
+                if result["status"] == "pass":
+                    self.results.add_pass(result["check"], result["message"])
+                elif result["status"] == "fail":
+                    self.results.add_fail(result["check"], result["message"])
+                elif result["status"] == "warning":
+                    self.results.add_warning(result["check"], result["message"])
+        except Exception as e:
+            self.results.add_error("versioning", str(e))
+            logger.error(f"Error during versioning checks: {e}")
 
     def _run_forensic_checks(self):
         """Execute forensic tool standard validations."""

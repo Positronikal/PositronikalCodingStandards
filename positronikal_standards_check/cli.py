@@ -56,6 +56,7 @@ Available check types:
   build    - Check build system only
   code     - Check code formatting standards only
   security - Check security requirements only
+  version  - Check version management (git tags, hatch-vcs, ldflags)
   forensic - Check forensic tool standards only
         """,
     )
@@ -69,7 +70,7 @@ Available check types:
 
     parser.add_argument(
         "--check",
-        choices=["all", "files", "build", "code", "security", "forensic"],
+        choices=["all", "files", "build", "code", "security", "version", "forensic"],
         default="all",
         help="Type of checks to run (default: all)",
     )
@@ -134,6 +135,8 @@ Available check types:
             results = checker.check_code()
         elif args.check == "security":
             results = checker.check_security()
+        elif args.check == "version":
+            results = checker.check_version()
         elif args.check == "forensic":
             results = checker.check_forensic()
         else:

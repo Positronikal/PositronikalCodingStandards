@@ -532,6 +532,108 @@ class TestForensicStandards:
         )
 
 
+class TestVersioning:
+    """Test version management validation."""
+
+    @pytest.mark.positronikal_version
+    def test_version_tags_missing(self, temp_repo):
+        """Version tags check must not crash in a non-git tmpdir."""
+        checker = PositronikalStandardsChecker(str(temp_repo))
+        results = checker.check_version()
+
+        # Non-git directory: warning or fail are both acceptable; must not error out
+        version_results = results.failed + results.warnings
+        assert any(r["check"] == "version_tags" for r in version_results), (
+            "version_tags check must produce a result"
+        )
+
+    @pytest.mark.positronikal_version
+    def test_python_versioning_with_hatch_vcs(self, temp_repo):
+        """Test pass when pyproject.toml references hatch-vcs."""
+        (temp_repo / "pyproject.toml").write_text(
+            '[build-system]\nrequires = ["hatchling", "hatch-vcs"]\n'
+            'build-backend = "hatchling.build"\n\n'
+            '[project]\ndynamic = ["version"]\n'
+        )
+        checker = PositronikalStandardsChecker(str(temp_repo))
+        results = checker.check_version()
+
+        assert any(
+            r["check"] == "python_version_source" and r["status"] == "pass"
+            for r in results.passed
+        )
+
+    @pytest.mark.positronikal_version
+    def test_python_versioning_missing(self, temp_repo):
+        """Test warning when pyproject.toml exists but no versioning tool present."""
+        (temp_repo / "pyproject.toml").write_text(
+            '[project]\nname = "mypackage"\nversion = "1.0.0"\n'
+        )
+        checker = PositronikalStandardsChecker(str(temp_repo))
+        results = checker.check_version()
+
+        assert any(
+            r["check"] == "python_version_source" and r["status"] == "warning"
+            for r in results.warnings
+        )
+
+    @pytest.mark.positronikal_version
+    def test_go_versioning_with_ldflags(self, temp_repo):
+        """Test pass when Makefile has ldflags version injection."""
+        (temp_repo / "go.mod").write_text("module example.com/test\n\ngo 1.21\n")
+        ldflags = '-ldflags "-X main.version=$(git describe --tags --abbrev=0)"'
+        (temp_repo / "Makefile").write_text(f"build:\n\tgo build {ldflags} ./...\n")
+        checker = PositronikalStandardsChecker(str(temp_repo))
+        results = checker.check_version()
+
+        assert any(
+            r["check"] == "go_version_source" and r["status"] == "pass"
+            for r in results.passed
+        )
+
+    @pytest.mark.positronikal_version
+    def test_go_versioning_missing(self, temp_repo):
+        """Test warning when go.mod exists but no ldflags injection in Makefile."""
+        (temp_repo / "go.mod").write_text("module example.com/test\n\ngo 1.21\n")
+        (temp_repo / "Makefile").write_text("build:\n\tgo build ./...\n")
+        checker = PositronikalStandardsChecker(str(temp_repo))
+        results = checker.check_version()
+
+        assert any(
+            r["check"] == "go_version_source" and r["status"] == "warning"
+            for r in results.warnings
+        )
+
+    @pytest.mark.positronikal_version
+    def test_pr_template_missing(self, temp_repo):
+        """Test warning when .github/ exists but PULL_REQUEST_TEMPLATE.md is absent."""
+        github_dir = temp_repo / ".github"
+        github_dir.mkdir()
+        checker = PositronikalStandardsChecker(str(temp_repo))
+        results = checker.check_files()
+
+        assert any(
+            "PULL_REQUEST_TEMPLATE" in r["check"] and r["status"] == "warning"
+            for r in results.warnings
+        )
+
+    @pytest.mark.positronikal_version
+    def test_pr_template_present(self, temp_repo):
+        """Test pass when .github/PULL_REQUEST_TEMPLATE.md exists."""
+        github_dir = temp_repo / ".github"
+        github_dir.mkdir()
+        (github_dir / "PULL_REQUEST_TEMPLATE.md").write_text(
+            "## Summary\n\n## Type of Change\n\n## Checklist\n"
+        )
+        checker = PositronikalStandardsChecker(str(temp_repo))
+        results = checker.check_files()
+
+        assert not any(
+            "PULL_REQUEST_TEMPLATE" in r["check"] and r["status"] == "warning"
+            for r in results.warnings
+        )
+
+
 class TestComprehensiveValidation:
     """Test comprehensive validation scenarios."""
 
@@ -595,3 +697,4 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "positronikal_all: Comprehensive validation tests"
     )
+    config.addinivalue_line("markers", "positronikal_version: Version management tests")

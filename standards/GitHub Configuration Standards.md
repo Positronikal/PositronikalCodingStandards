@@ -293,6 +293,45 @@ copy the template from `repo-template/` in remediation mode.
 - **Coordinated Disclosure**: 90-day disclosure timeline
 - **Response Times**: SLA for security issue acknowledgment and resolution
 
+## Release Management and Version Numbering
+
+### Authoritative Version Source
+
+**Git tags are the authoritative version source for all Positronikal projects.** Version numbers must not be hard-coded in source files, build scripts, or configuration. The tag is the single record of what constitutes a release; everything else derives from it.
+
+This applies to all project types:
+
+| Language | Mechanism | Required setup |
+|---|---|---|
+| Python | `hatch-vcs` dynamic versioning | `dynamic = ["version"]` in `pyproject.toml`; `hatch-vcs` in `[build-system] requires` |
+| Go | `ldflags` version injection | `-ldflags "-X main.version=$(git describe --tags --abbrev=0)"` in Makefile |
+| Other | Derive from `git describe` in build scripts | Document the derivation method in the project's build documentation |
+
+### Tag Format and Signing
+
+- **Format**: `vMAJOR.MINOR.PATCH` (semantic versioning — semver.org)
+- **Type**: Annotated and GPG-signed (`git tag -s vX.Y.Z -m "Release vX.Y.Z"`)
+- **Bump rules** (conventional commits):
+  - `BREAKING CHANGE` in commit body → major bump
+  - `feat:` or `feat(` prefix → minor bump
+  - All other prefixes (`fix:`, `docs:`, `style:`, `refactor:`, `test:`, `chore:`) → patch bump
+
+### Programmatic Compliance Check
+
+`positronikal-check --check version` validates:
+1. At least one `v*.*.*` tag exists in the repository (`fail` if absent)
+2. Python projects with `pyproject.toml` have a recognized git-tag-based versioning tool (`warning` if absent)
+3. Go projects with `go.mod` have ldflags version injection in the Makefile (`warning` if absent)
+
+`repo-health-check` runs this check and applies remediation where possible: missing initial tags are created; missing tool configuration is surfaced as an open item.
+
+### Implementation Checklist
+
+- [ ] At least one `v*.*.*` tag exists
+- [ ] Python: `hatch-vcs` in `[build-system] requires`; `dynamic = ["version"]` in `[project]`
+- [ ] Go: `ldflags` version injection in Makefile
+- [ ] Tags are GPG-signed annotated tags (verified in GitHub as "Verified")
+
 ## Advanced Configuration for Forensic Evidence Compliance
 
 ### Enhanced Audit Requirements
