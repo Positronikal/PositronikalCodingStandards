@@ -17,6 +17,7 @@ class FileRequirementsValidator:
         "README.md": "Project documentation",
         "CONTRIBUTING.md": "Contribution guidelines",
         ".gitignore": "Git ignore patterns",
+        "SECURITY.md": "Security policy",
     }
 
     # License files (at least one required)
@@ -26,14 +27,12 @@ class FileRequirementsValidator:
     RECOMMENDED_FILES = {
         "AUTHORS.md": "List of contributors",
         "BUGS.md": "Bug reporting guidelines",
-        "SECURITY.md": "Security policy",
         "USING.md": "Usage instructions",
         ".editorconfig": "Editor configuration",
     }
 
     # GitHub-specific files
     GITHUB_FILES = {
-        ".github/SECURITY.md": "GitHub security policy",
         ".github/CODEOWNERS": "Code ownership",
         ".github/dependabot.yml": "Dependabot configuration",
         ".github/workflows/ci.yml": "CI workflow",

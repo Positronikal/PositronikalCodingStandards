@@ -72,11 +72,6 @@ insert_final_newline = true
     # Add GitHub files
     github_dir = repo_path / ".github"
     github_dir.mkdir()
-    (github_dir / "SECURITY.md").write_text(
-        "# Security Policy\n\n"
-        "Report security vulnerabilities to security@example.com. "
-        "We aim to respond within 48 hours."
-    )
     (github_dir / "CODEOWNERS").write_text("* @testowner")
 
     # Add GitHub templates
@@ -222,6 +217,10 @@ class TestFileRequirements:
             r["status"] == "fail" and ".gitignore" in r["message"]
             for r in results.failed
         )
+        assert any(
+            r["status"] == "fail" and "SECURITY.md" in r["message"]
+            for r in results.failed
+        )
 
     @pytest.mark.positronikal_files
     def test_required_files_present(self, compliant_repo):
@@ -236,6 +235,10 @@ class TestFileRequirements:
         )
         assert any(
             r["check"] == "required_file_CONTRIBUTING.md" and r["status"] == "pass"
+            for r in results.passed
+        )
+        assert any(
+            r["check"] == "required_file_SECURITY.md" and r["status"] == "pass"
             for r in results.passed
         )
 
@@ -432,10 +435,6 @@ class TestSecurity:
         checker = PositronikalStandardsChecker(str(compliant_repo))
         results = checker.check_security()
 
-        assert any(
-            ".github_SECURITY.md" in r["check"] and r["status"] == "pass"
-            for r in results.passed
-        )
         assert any(
             "dependabot.yml" in r["check"] and r["status"] == "pass"
             for r in results.passed

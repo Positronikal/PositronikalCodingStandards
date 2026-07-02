@@ -16,7 +16,6 @@ class SecurityValidator:
 
     # Security-related files
     SECURITY_FILES = {
-        ".github/SECURITY.md": "Security policy",
         ".github/dependabot.yml": "Dependabot configuration",
         ".github/workflows/codeql.yml": "CodeQL workflow",
     }
