@@ -43,7 +43,7 @@ class FileRequirementsValidator:
     GITHUB_TEMPLATES = {
         ".github/ISSUE_TEMPLATE/bug_report.md": "Bug report template",
         ".github/ISSUE_TEMPLATE/feature_request.md": "Feature request template",
-        ".github/pull_request_template.md": "Pull request template",
+        ".github/PULL_REQUEST_TEMPLATE.md": "Pull request template",
     }
 
     # Standard directories

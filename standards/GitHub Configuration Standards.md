@@ -267,9 +267,25 @@ Repository access levels:
 
 #### Templates and Automation
 - **Issue Templates**: Bug reports, feature requests, security issues
-- **PR Templates**: Standardized review checklists
+- **PR Templates**: See below
 - **Labels**: Consistent labeling scheme across repositories
 - **Automated Workflows**: Stale issue management, welcome messages
+
+#### Pull Request Template
+
+All repositories must provide `.github/PULL_REQUEST_TEMPLATE.md`. GitHub
+recognizes this location for all contributors opening a pull request via the
+web UI.
+
+**Canonical source:** `repo-template/.github/PULL_REQUEST_TEMPLATE.md` in
+`PositronikalCodingStandards`. Copy that file verbatim; add project-specific
+checklist items below the standard ones if needed. Do not maintain a
+divergent structure — the standard sections (`Summary`, `Type of Change`,
+`Checklist`, `Related Issues`) must be present in every copy.
+
+`positronikal-check` enforces this as a warning when `.github/` exists and
+the template is absent. `repo-health-check` surfaces the warning and can
+copy the template from `repo-template/` in remediation mode.
 
 #### Security Issue Handling
 - **Private Reporting**: Enable private vulnerability reporting

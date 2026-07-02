@@ -83,7 +83,7 @@ insert_final_newline = true
     (templates_dir / "feature_request.md").write_text(
         "---\ntitle: Feature Request\n---\n\nFeature template"
     )
-    (github_dir / "pull_request_template.md").write_text(
+    (github_dir / "PULL_REQUEST_TEMPLATE.md").write_text(
         "## Description\n\nPR template"
     )
 
@@ -261,6 +261,28 @@ class TestFileRequirements:
 
         assert any(
             r["check"] == "license_file" and r["status"] == "pass"
+            for r in results.passed
+        )
+
+    @pytest.mark.positronikal_files
+    def test_pr_template_missing(self, temp_repo):
+        """Test warning when PR template is absent from a repo with .github/."""
+        (temp_repo / ".github").mkdir()
+        checker = PositronikalStandardsChecker(str(temp_repo))
+        results = checker.check_files()
+        assert any(
+            "PULL_REQUEST_TEMPLATE.md" in r["check"] and r["status"] == "warning"
+            for r in results.warnings
+        )
+
+    @pytest.mark.positronikal_files
+    def test_pr_template_present(self, compliant_repo):
+        """Test pass when PR template is present."""
+        checker = PositronikalStandardsChecker(str(compliant_repo))
+        results = checker.check_files()
+        assert any(
+            r["check"] == "github_template_.github_PULL_REQUEST_TEMPLATE.md"
+            and r["status"] == "pass"
             for r in results.passed
         )
 
