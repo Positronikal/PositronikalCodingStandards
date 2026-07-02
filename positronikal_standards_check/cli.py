@@ -31,22 +31,22 @@ def main():
 Examples:
   # Check all standards in current directory
   positronikal-check .
-  
+
   # Check specific repository
   positronikal-check /path/to/repo
-  
+
   # Check only file requirements
   positronikal-check . --check files
-  
+
   # Include forensic tool standards
   positronikal-check . --forensic
-  
+
   # Verbose output showing all passing checks
   positronikal-check . --verbose
-  
+
   # Use custom configuration
   positronikal-check . --config custom-standards.yaml
-  
+
   # Exit with non-zero status on failure
   positronikal-check . --strict
 

@@ -90,10 +90,13 @@ __pycache__/
 *.egg
 build/
 .eggs/
+.venv/
+.ruff_cache/
 positronikal_standards_check/_version.py
 
 # Temporary files
 etc/
+var/
 *.tmp
 *.bak
 *.log
