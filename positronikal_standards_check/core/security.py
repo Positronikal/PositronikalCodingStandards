@@ -17,7 +17,6 @@ class SecurityValidator:
     # Security-related files
     SECURITY_FILES = {
         ".github/dependabot.yml": "Dependabot configuration",
-        ".github/workflows/codeql.yml": "CodeQL workflow",
     }
 
     # Sensitive patterns to check for
