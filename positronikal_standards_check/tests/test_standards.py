@@ -358,6 +358,36 @@ class TestFileRequirements:
         assert results[0]["status"] == "fail"
 
 
+class TestCodeStandardsFixes:
+    """Tests for checker false-positive fixes."""
+
+    @pytest.mark.positronikal_code
+    def test_python_line_length_uses_88(self, temp_repo):
+        """Python files are checked at 88 chars (Ruff limit), not 79."""
+        (temp_repo / "src" / "module.py").write_text("x = " + "a" * 80 + "\n")
+        checker = PositronikalStandardsChecker(str(temp_repo))
+        results = checker.check_code()
+        assert not any(
+            r["check"] == "line_length" and r["status"] == "fail"
+            for r in results.failed
+        ), "84-char Python line should not fail the 88-char Python limit"
+
+    @pytest.mark.positronikal_code
+    def test_sensitive_data_skips_checker_source(self, temp_repo):
+        """Checker's own package directory is excluded from sensitive_data scan."""
+        pkg = temp_repo / "positronikal_standards_check"
+        pkg.mkdir()
+        (pkg / "security.py").write_text(
+            'PATTERN = r"-----BEGIN PGP PRIVATE KEY BLOCK-----"\n'
+        )
+        checker = PositronikalStandardsChecker(str(temp_repo))
+        results = checker.check_security()
+        assert not any(
+            r["check"] == "sensitive_data" and r["status"] == "fail"
+            for r in results.failed
+        ), "Regex pattern in checker source should not flag sensitive_data"
+
+
 class TestBuildSystem:
     """Test build system validation."""
 

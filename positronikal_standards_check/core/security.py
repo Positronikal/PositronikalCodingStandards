@@ -151,7 +151,9 @@ class SecurityValidator:
         ]:
             source_files.extend(self.repo_path.rglob(f"*{ext}"))
 
-        # Filter out common excluded directories
+        # Filter out common excluded directories.
+        # The checker's own package is excluded to prevent its regex pattern
+        # definitions and test fixtures from triggering false positives.
         excluded_dirs = {
             ".git",
             "node_modules",
@@ -160,6 +162,7 @@ class SecurityValidator:
             ".venv",
             "dist",
             "build",
+            "positronikal_standards_check",
         }
 
         for file_path in source_files:

@@ -13,8 +13,13 @@ logger = logging.getLogger(__name__)
 class CodeStandardsValidator:
     """Validates code formatting standards."""
 
-    # Maximum line length per standards
+    # Maximum line length per standards (GNU baseline)
     MAX_LINE_LENGTH = 79
+
+    # Per-language overrides — Ruff manages Python at 88; GNU 79 doesn't apply
+    LANGUAGE_LINE_LENGTHS = {
+        ".py": 88,
+    }
 
     # File extensions to check for different languages
     LANGUAGE_EXTENSIONS = {
@@ -224,12 +229,15 @@ class CodeStandardsValidator:
 
         for file_path in self._get_source_files():
             files_checked += 1
+            limit = self.LANGUAGE_LINE_LENGTHS.get(
+                file_path.suffix, self.MAX_LINE_LENGTH
+            )
             try:
                 with open(file_path, "r", encoding="utf-8") as f:
                     for line_num, line in enumerate(f, 1):
                         # Remove trailing newline for length check
                         line = line.rstrip("\n\r")
-                        if len(line) > self.MAX_LINE_LENGTH:
+                        if len(line) > limit:
                             violations.append(
                                 {
                                     "file": str(file_path.relative_to(self.repo_path)),
@@ -251,7 +259,7 @@ class CodeStandardsValidator:
                     "check": "line_length",
                     "status": "fail",
                     "message": (
-                        f"Lines exceeding {self.MAX_LINE_LENGTH} characters: "
+                        f"Lines exceeding language limit: "
                         f"{', '.join(violation_msgs)}"
                         f"{'...' if len(violations) > 5 else ''}"
                     ),
@@ -464,6 +472,30 @@ class CodeStandardsValidator:
         for file_path in source_files:
             if not any(excluded in file_path.parts for excluded in excluded_dirs):
                 filtered_files.append(file_path)
+
+        # Exclude gitignored files — rglob includes them; git ls-files does not
+        try:
+            result = subprocess.run(  # noqa: S603
+                [  # noqa: S607
+                    "git",
+                    "ls-files",
+                    "--cached",
+                    "--others",
+                    "--exclude-standard",
+                ],
+                capture_output=True,
+                text=True,
+                cwd=self.repo_path,
+            )
+            if result.returncode == 0:
+                tracked = {
+                    (self.repo_path / p.strip()).resolve()
+                    for p in result.stdout.splitlines()
+                    if p.strip()
+                }
+                filtered_files = [f for f in filtered_files if f.resolve() in tracked]
+        except Exception:  # noqa: S110
+            pass  # not a git repo or git unavailable; scan all filtered files
 
         return filtered_files
 
