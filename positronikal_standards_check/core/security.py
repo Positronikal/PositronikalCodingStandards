@@ -153,7 +153,9 @@ class SecurityValidator:
 
         # Filter out common excluded directories.
         # The checker's own package is excluded to prevent its regex pattern
-        # definitions and test fixtures from triggering false positives.
+        # definitions from triggering false positives.
+        # Test directories are excluded: they commonly contain mock credentials
+        # and pattern-detection strings that are not real secrets.
         excluded_dirs = {
             ".git",
             "node_modules",
@@ -163,6 +165,8 @@ class SecurityValidator:
             "dist",
             "build",
             "positronikal_standards_check",
+            "test",
+            "tests",
         }
 
         for file_path in source_files:
@@ -319,16 +323,38 @@ class SecurityValidator:
                     }
                 )
 
-        # Check for requirements.txt or Pipfile.lock (Python)
-        if any(self.repo_path.glob("*.py")):
-            if (self.repo_path / "requirements.txt").exists() or (
-                self.repo_path / "Pipfile.lock"
-            ).exists():
+        # Check for Python dependency management.
+        # Use rglob so source-in-subdirectory layouts (src/, lib/) are detected.
+        _excl = {".git", ".venv", "venv", "node_modules", "build", "dist"}
+        _has_py = any(
+            not any(part in _excl for part in f.parts)
+            for f in self.repo_path.rglob("*.py")
+        )
+        if _has_py:
+            has_lockfile = (
+                (self.repo_path / "requirements.txt").exists()
+                or (self.repo_path / "Pipfile.lock").exists()
+                or (self.repo_path / "uv.lock").exists()
+                or (self.repo_path / "poetry.lock").exists()
+            )
+            has_pyproject = (self.repo_path / "pyproject.toml").exists()
+
+            if has_lockfile:
                 results.append(
                     {
                         "check": "python_dependencies",
                         "status": "pass",
-                        "message": "Python dependency file found",
+                        "message": "Python dependency management found",
+                    }
+                )
+            elif has_pyproject:
+                results.append(
+                    {
+                        "check": "python_dependencies",
+                        "status": "pass",
+                        "message": (
+                            "Python dependency management found (pyproject.toml)"
+                        ),
                     }
                 )
             else:
@@ -337,8 +363,8 @@ class SecurityValidator:
                         "check": "python_dependencies",
                         "status": "warning",
                         "message": (
-                            "No requirements.txt or Pipfile.lock found for "
-                            "Python project"
+                            "No Python dependency management found "
+                            "(expected requirements.txt, uv.lock, or pyproject.toml)"
                         ),
                     }
                 )

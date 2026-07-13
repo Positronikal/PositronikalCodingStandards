@@ -48,12 +48,32 @@ class FileRequirementsValidator:
         ".github/PULL_REQUEST_TEMPLATE.md": "Pull request template",
     }
 
-    # Standard directories
+    # Standard directories. "test" accepts tests/ too — see _check_standard_directories.
     STANDARD_DIRECTORIES = {
         "src": "Source code",
         "test": "Test files",
         "docs": "Documentation",
     }
+
+    # File extensions supported by CodeQL — shell is NOT included
+    CODEQL_EXTENSIONS = frozenset(
+        [
+            ".py",
+            ".go",
+            ".java",
+            ".js",
+            ".jsx",
+            ".ts",
+            ".tsx",
+            ".rb",
+            ".c",
+            ".cpp",
+            ".h",
+            ".hpp",
+            ".cs",
+            ".swift",
+        ]
+    )
 
     def __init__(self, repo_path: Path):
         """
@@ -86,7 +106,8 @@ class FileRequirementsValidator:
         if (self.repo_path / ".github").exists():
             results.extend(self._check_github_files())
             results.extend(self._check_github_templates())
-            results.extend(self._check_codeql_coverage())
+            if self._has_codeql_language():
+                results.extend(self._check_codeql_coverage())
 
         # Check standard directories
         results.extend(self._check_standard_directories())
@@ -242,6 +263,15 @@ class FileRequirementsValidator:
 
         return results
 
+    def _has_codeql_language(self) -> bool:
+        """Return True if the repo contains any CodeQL-supported language files."""
+        excluded = {".git", ".venv", "venv", "node_modules", "build", "dist"}
+        for ext in self.CODEQL_EXTENSIONS:
+            for f in self.repo_path.rglob(f"*{ext}"):
+                if not any(part in excluded for part in f.parts):
+                    return True
+        return False
+
     def _check_codeql_coverage(self) -> List[Dict]:
         """Check for CodeQL scanning via workflow file or GitHub Default Setup."""
         codeql_file = self.repo_path / ".github" / "workflows" / "codeql.yml"
@@ -319,16 +349,27 @@ class FileRequirementsValidator:
         results = []
 
         for dirname, description in self.STANDARD_DIRECTORIES.items():
-            dir_path = self.repo_path / dirname
+            # The test directory accepts both test/ and tests/
+            candidates = [self.repo_path / dirname]
+            if dirname == "test":
+                candidates.append(self.repo_path / "tests")
 
-            if dir_path.exists() and dir_path.is_dir():
-                # Check if directory is not empty
-                if any(dir_path.iterdir()):
+            existing = [p for p in candidates if p.exists() and p.is_dir()]
+            # Prefer a non-empty candidate so tests/ wins over an empty test/
+            found_path = next(
+                (p for p in existing if any(p.iterdir())),
+                existing[0] if existing else None,
+            )
+
+            if found_path is not None:
+                if any(found_path.iterdir()):
                     results.append(
                         {
                             "check": f"standard_dir_{dirname}",
                             "status": "pass",
-                            "message": f"Standard directory exists: {dirname}",
+                            "message": (
+                                f"Standard directory exists: {found_path.name}"
+                            ),
                         }
                     )
                 else:
@@ -337,17 +378,19 @@ class FileRequirementsValidator:
                             "check": f"standard_dir_{dirname}",
                             "status": "warning",
                             "message": (
-                                f"Standard directory exists but is empty: {dirname}"
+                                f"Standard directory exists but is empty: "
+                                f"{found_path.name}"
                             ),
                         }
                     )
             else:
+                label = "test or tests" if dirname == "test" else dirname
                 results.append(
                     {
                         "check": f"standard_dir_{dirname}",
                         "status": "warning",
                         "message": (
-                            f"Missing standard directory: {dirname} ({description})"
+                            f"Missing standard directory: {label} ({description})"
                         ),
                     }
                 )

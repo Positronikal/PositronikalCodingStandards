@@ -2,10 +2,15 @@
 Code formatting standards validation for Positronikal standards.
 """
 
+import re
 import subprocess
 from pathlib import Path
 from typing import Dict, List
 import logging
+
+# Lines whose non-whitespace content is primarily a URL cannot be wrapped
+# and are exempt from the line-length check.
+_URL_RE = re.compile(r"https?://\S+")
 
 logger = logging.getLogger(__name__)
 
@@ -238,6 +243,9 @@ class CodeStandardsValidator:
                         # Remove trailing newline for length check
                         line = line.rstrip("\n\r")
                         if len(line) > limit:
+                            # URLs cannot be broken across lines — exempt them
+                            if _URL_RE.search(line):
+                                continue
                             violations.append(
                                 {
                                     "file": str(file_path.relative_to(self.repo_path)),
@@ -396,9 +404,23 @@ class CodeStandardsValidator:
                         cwd=self.repo_path,
                     )
 
+                    # File-based linters (shellcheck) need explicit paths.
+                    # Extend the base command with the files to check.
+                    cmd = list(linter_cmd)
+                    if language == "shell":
+                        shell_exts = {".sh", ".bash"}
+                        shell_files = [
+                            str(f)
+                            for f in self._get_source_files()
+                            if f.suffix in shell_exts
+                        ]
+                        if not shell_files:
+                            continue
+                        cmd.extend(shell_files)
+
                     # Run the actual linter
                     result = subprocess.run(  # noqa: S603
-                        linter_cmd, capture_output=True, text=True, cwd=self.repo_path
+                        cmd, capture_output=True, text=True, cwd=self.repo_path
                     )
 
                     if result.returncode == 0:

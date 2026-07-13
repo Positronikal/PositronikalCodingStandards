@@ -304,10 +304,14 @@ class BuildSystemValidator:
         """Check for GNU Make build system."""
         results = []
 
-        # Check if this is a compiled language project
+        # Check if this is a compiled language project.
+        # Exclude common tool directories (.venv, node_modules, etc.) to avoid
+        # triggering on C headers bundled with Python extensions or npm packages.
+        excluded = {".git", ".venv", "venv", "node_modules", "build", "dist"}
         has_source_code = any(
-            self.repo_path.rglob(f"*.{ext}")
+            not any(part in excluded for part in f.parts)
             for ext in ["c", "cpp", "cc", "cxx", "h", "hpp"]
+            for f in self.repo_path.rglob(f"*.{ext}")
         )
 
         if not has_source_code:

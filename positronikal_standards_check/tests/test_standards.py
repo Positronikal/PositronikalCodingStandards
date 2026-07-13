@@ -387,6 +387,103 @@ class TestCodeStandardsFixes:
             for r in results.failed
         ), "Regex pattern in checker source should not flag sensitive_data"
 
+    @pytest.mark.positronikal_code
+    def test_sensitive_data_skips_test_dirs(self, temp_repo):
+        """Test directories are excluded from sensitive_data scan."""
+        tests_dir = temp_repo / "tests"
+        tests_dir.mkdir()
+        (tests_dir / "test_security.py").write_text(
+            'PATTERNS = ["password=", "api_key=", "secret="]\n'
+        )
+        checker = PositronikalStandardsChecker(str(temp_repo))
+        results = checker.check_security()
+        assert not any(
+            r["check"] == "sensitive_data" and r["status"] == "fail"
+            for r in results.failed
+        ), "Detection patterns in tests/ should not flag sensitive_data"
+
+    @pytest.mark.positronikal_code
+    def test_line_length_exempts_url_lines(self, temp_repo):
+        """Lines containing URLs are exempt from the line-length check."""
+        url = "https://example.com/" + "x" * 70  # 92 chars total, well over 79
+        (temp_repo / "src" / "script.sh").write_text(
+            f"#!/usr/bin/env bash\n# See {url}\necho hello\n",
+            newline="",
+        )
+        checker = PositronikalStandardsChecker(str(temp_repo))
+        results = checker.check_code()
+        assert not any(
+            r["check"] == "line_length" and r["status"] == "fail"
+            for r in results.failed
+        ), "Long URL-containing comment line should not fail line_length"
+
+    @pytest.mark.positronikal_files
+    def test_tests_dir_accepted_as_test_directory(self, temp_repo):
+        """tests/ (with s) is accepted as a valid test directory."""
+        tests_dir = temp_repo / "tests"
+        tests_dir.mkdir()
+        (tests_dir / "test_foo.py").write_text("def test_foo(): pass\n")
+        checker = PositronikalStandardsChecker(str(temp_repo))
+        results = checker.check_files()
+        assert any(
+            r["check"] == "standard_dir_test" and r["status"] == "pass"
+            for r in results.passed
+        ), "tests/ directory should pass the standard_dir_test check"
+
+    @pytest.mark.positronikal_security
+    def test_python_deps_pyproject_plus_uvlock(self, temp_repo):
+        """pyproject.toml + uv.lock is accepted as valid Python dep management."""
+        (temp_repo / "src" / "main.py").write_text("x = 1\n")
+        (temp_repo / "pyproject.toml").write_text(
+            '[project]\nname = "pkg"\ndependencies = ["requests"]\n'
+        )
+        (temp_repo / "uv.lock").write_text("version = 1\n")
+        checker = PositronikalStandardsChecker(str(temp_repo))
+        results = checker.check_security()
+        assert any(
+            r["check"] == "python_dependencies" and r["status"] == "pass"
+            for r in results.passed
+        ), "pyproject.toml + uv.lock should pass python_dependencies check"
+
+    @pytest.mark.positronikal_security
+    def test_python_deps_pyproject_alone(self, temp_repo):
+        """pyproject.toml alone (no lockfile) passes python_dependencies."""
+        (temp_repo / "src" / "main.py").write_text("x = 1\n")
+        (temp_repo / "pyproject.toml").write_text(
+            '[project]\nname = "pkg"\ndependencies = ["requests"]\n'
+        )
+        checker = PositronikalStandardsChecker(str(temp_repo))
+        results = checker.check_security()
+        assert any(
+            r["check"] == "python_dependencies" and r["status"] == "pass"
+            for r in results.passed
+        ), "pyproject.toml alone should pass python_dependencies check"
+
+    @pytest.mark.positronikal_build
+    def test_gnu_make_skipped_for_pure_python(self, temp_repo):
+        """GNU Make checks are skipped when no C/C++ source files are present."""
+        (temp_repo / "src" / "main.py").write_text("x = 1\n")
+        checker = PositronikalStandardsChecker(str(temp_repo))
+        results = checker.check_build()
+        assert not any(
+            r["check"] in ("gnu_make_configure", "gnu_make_automake")
+            for r in results.passed + results.warnings + results.failed
+        ), "GNU Make checks should not appear for a Python-only repo"
+
+    @pytest.mark.positronikal_files
+    def test_codeql_check_skipped_for_shell_only_repo(self, temp_repo):
+        """CodeQL check is skipped entirely when no CodeQL-supported language exists."""
+        github_dir = temp_repo / ".github" / "workflows"
+        github_dir.mkdir(parents=True)
+        (temp_repo / "script.sh").write_text("#!/usr/bin/env bash\necho hi\n")
+        checker = PositronikalStandardsChecker(str(temp_repo))
+        results = checker.check_files()
+        check_id = "github_file_.github_workflows_codeql.yml"
+        assert not any(
+            r["check"] == check_id
+            for r in results.passed + results.warnings + results.failed
+        ), "CodeQL check should be absent for a shell-only repo"
+
 
 class TestBuildSystem:
     """Test build system validation."""
