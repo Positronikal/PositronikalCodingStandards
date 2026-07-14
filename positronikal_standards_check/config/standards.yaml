@@ -109,7 +109,10 @@ code_standards:
       command: ["perlcritic"]
       extensions: [".pl", ".pm"]
     powershell:
-      command: ["PSScriptAnalyzer"]
+      # PSScriptAnalyzer is a PS module, not a binary. Invoked via:
+      #   pwsh -NonInteractive -Command "Invoke-ScriptAnalyzer -Path <file>"
+      # See _run_powershell_linter() in core/code_standards.py.
+      command: ["pwsh", "-NonInteractive", "-Command", "Invoke-ScriptAnalyzer"]
       extensions: [".ps1", ".psm1"]
     java:
       command: ["spotbugs", "-textui"]

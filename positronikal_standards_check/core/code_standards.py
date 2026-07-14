@@ -5,7 +5,7 @@ Code formatting standards validation for Positronikal standards.
 import re
 import subprocess
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional
 import logging
 
 # Lines whose non-whitespace content is primarily a URL cannot be wrapped
@@ -392,6 +392,14 @@ class CodeStandardsValidator:
             if language in self.LINTERS:
                 linter_cmd = self.LINTERS[language]
 
+                # PowerShell is module-driven, not binary-driven — handle
+                # it before the generic binary availability check below.
+                if language == "powershell":
+                    ps_result = self._run_powershell_linter()
+                    if ps_result is not None:
+                        results.append(ps_result)
+                    continue
+
                 # Check if linter is available
                 try:
                     # noqa justification: linter_cmd comes from the
@@ -466,6 +474,75 @@ class CodeStandardsValidator:
                     )
 
         return results
+
+    def _run_powershell_linter(self) -> Optional[Dict]:
+        """Run PSScriptAnalyzer via pwsh for PowerShell files.
+
+        PSScriptAnalyzer is a PowerShell module invoked through pwsh, not a
+        standalone binary, so it cannot use the generic binary-linter path.
+        Returns None when there are no PS1/PSM1 files to lint (caller skips).
+        """
+        ps_exts = {".ps1", ".psm1"}
+        ps_files = [
+            str(f).replace("\\", "/")
+            for f in self._get_source_files()
+            if f.suffix in ps_exts
+        ]
+
+        if not ps_files:
+            return None
+
+        try:
+            # Verify pwsh and the PSScriptAnalyzer module are both available.
+            check = subprocess.run(  # noqa: S603
+                [  # noqa: S607
+                    "pwsh",
+                    "-NonInteractive",
+                    "-Command",
+                    "if (Get-Module -ListAvailable PSScriptAnalyzer)"
+                    " { exit 0 } else { exit 1 }",
+                ],
+                capture_output=True,
+                check=False,
+            )
+            if check.returncode != 0:
+                return {
+                    "check": "linter_powershell",
+                    "status": "warning",
+                    "message": "Powershell linter not available: PSScriptAnalyzer",
+                }
+        except FileNotFoundError:
+            return {
+                "check": "linter_powershell",
+                "status": "warning",
+                "message": "Powershell linter not available: pwsh not found",
+            }
+
+        files_str = "', '".join(ps_files)
+        ps_cmd = (
+            f"$r = @('{files_str}') | ForEach-Object "
+            f"{{ Invoke-ScriptAnalyzer -Path $_ -Severity @('Error','Warning') }}; "
+            f"if ($r) {{ $r | Format-Table -AutoSize | Out-String; exit 1 }}"
+        )
+        result = subprocess.run(  # noqa: S603
+            ["pwsh", "-NonInteractive", "-Command", ps_cmd],  # noqa: S607
+            capture_output=True,
+            text=True,
+            cwd=self.repo_path,
+        )
+
+        if result.returncode == 0:
+            return {
+                "check": "linter_powershell",
+                "status": "pass",
+                "message": "PowerShell linter passed",
+            }
+        output = result.stdout or result.stderr
+        return {
+            "check": "linter_powershell",
+            "status": "fail",
+            "message": f"PowerShell linter found issues: {output[:200]}...",
+        }
 
     def _get_source_files(self) -> List[Path]:
         """Get all source code files in the repository."""

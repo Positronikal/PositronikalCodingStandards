@@ -15,6 +15,9 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from positronikal_standards_check import PositronikalStandardsChecker
+from positronikal_standards_check.core.code_standards import (
+    CodeStandardsValidator,
+)
 
 
 # Pytest markers for selective testing
@@ -876,6 +879,94 @@ class TestComprehensiveValidation:
         assert "POSITRONIKAL STANDARDS VALIDATION REPORT" in captured.out
         assert "Summary:" in captured.out
         assert "VALIDATION" in captured.out
+
+
+class TestPowerShellLinter:
+    """Test the PowerShell linter (_run_powershell_linter)."""
+
+    @pytest.mark.positronikal_code
+    def test_no_ps1_files_returns_none(self, temp_repo):
+        """No PS1/PSM1 files → linter returns None (caller skips the check)."""
+
+        validator = CodeStandardsValidator(temp_repo)
+        assert validator._run_powershell_linter() is None
+
+    @pytest.mark.positronikal_code
+    def test_pwsh_not_found_returns_warning(self, temp_repo):
+        """pwsh not on PATH → warning result."""
+
+        (temp_repo / "script.ps1").write_text("Write-Host 'hello'\n")
+        validator = CodeStandardsValidator(temp_repo)
+
+        with patch("subprocess.run", side_effect=FileNotFoundError):
+            result = validator._run_powershell_linter()
+
+        assert result is not None
+        assert result["check"] == "linter_powershell"
+        assert result["status"] == "warning"
+        assert "pwsh not found" in result["message"]
+
+    @pytest.mark.positronikal_code
+    def test_module_not_installed_returns_warning(self, temp_repo):
+        """pwsh available but PSScriptAnalyzer not installed → warning."""
+
+        (temp_repo / "script.ps1").write_text("Write-Host 'hello'\n")
+        validator = CodeStandardsValidator(temp_repo)
+
+        mock_unavailable = MagicMock()
+        mock_unavailable.returncode = 1
+        with patch("subprocess.run", return_value=mock_unavailable):
+            result = validator._run_powershell_linter()
+
+        assert result is not None
+        assert result["check"] == "linter_powershell"
+        assert result["status"] == "warning"
+        assert "PSScriptAnalyzer" in result["message"]
+
+    @pytest.mark.positronikal_code
+    def test_linter_passes_clean_file(self, temp_repo):
+        """PSScriptAnalyzer reports no issues → pass result."""
+
+        ps1_file = temp_repo / "script.ps1"
+        ps1_file.write_text("Write-Host 'hello'\n")
+        validator = CodeStandardsValidator(temp_repo)
+
+        mock_ok = MagicMock()
+        mock_ok.returncode = 0
+
+        # Patch _get_source_files so the git-ls-files subprocess mock
+        # doesn't filter out the file before we reach the linter calls.
+        with patch.object(validator, "_get_source_files", return_value=[ps1_file]):
+            with patch("subprocess.run", return_value=mock_ok):
+                result = validator._run_powershell_linter()
+
+        assert result is not None
+        assert result["check"] == "linter_powershell"
+        assert result["status"] == "pass"
+
+    @pytest.mark.positronikal_code
+    def test_linter_fails_on_issues(self, temp_repo):
+        """PSScriptAnalyzer finds issues → fail result with output."""
+
+        ps1_file = temp_repo / "script.ps1"
+        ps1_file.write_text("$x=1\n")
+        validator = CodeStandardsValidator(temp_repo)
+
+        mock_check_ok = MagicMock()
+        mock_check_ok.returncode = 0
+        mock_fail = MagicMock()
+        mock_fail.returncode = 1
+        mock_fail.stdout = "PSAvoidUsingWriteHost: Use Write-Output instead.\n"
+        mock_fail.stderr = ""
+
+        with patch.object(validator, "_get_source_files", return_value=[ps1_file]):
+            with patch("subprocess.run", side_effect=[mock_check_ok, mock_fail]):
+                result = validator._run_powershell_linter()
+
+        assert result is not None
+        assert result["check"] == "linter_powershell"
+        assert result["status"] == "fail"
+        assert "PSAvoidUsingWriteHost" in result["message"]
 
 
 # Pytest configuration for running specific test groups
