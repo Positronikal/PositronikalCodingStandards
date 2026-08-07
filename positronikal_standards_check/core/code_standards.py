@@ -4,6 +4,7 @@ Code formatting standards validation for Positronikal standards.
 
 import re
 import subprocess
+import tomllib
 from pathlib import Path
 from typing import Dict, List, Optional
 import logging
@@ -544,6 +545,23 @@ class CodeStandardsValidator:
             "message": f"PowerShell linter found issues: {output[:200]}...",
         }
 
+    def _read_exclude_paths(self) -> set:
+        """Read [tool.positronikal-check] exclude-paths from pyproject.toml."""
+        try:
+            pyproject = self.repo_path / "pyproject.toml"
+            if not pyproject.exists():
+                return set()
+            with open(pyproject, "rb") as f:
+                data = tomllib.load(f)
+            paths = (
+                data.get("tool", {})
+                .get("positronikal-check", {})
+                .get("exclude-paths", [])
+            )
+            return {str((self.repo_path / p).resolve()) for p in paths}
+        except Exception:
+            return set()
+
     def _get_source_files(self) -> List[Path]:
         """Get all source code files in the repository."""
         source_files = []
@@ -567,10 +585,18 @@ class CodeStandardsValidator:
             "build",
         }
 
+        # Per-repo path exclusions from [tool.positronikal-check] exclude-paths
+        excluded_paths = self._read_exclude_paths()
+
         filtered_files = []
         for file_path in source_files:
-            if not any(excluded in file_path.parts for excluded in excluded_dirs):
-                filtered_files.append(file_path)
+            if any(excluded in file_path.parts for excluded in excluded_dirs):
+                continue
+            if excluded_paths and any(
+                str(file_path.resolve()).startswith(ep) for ep in excluded_paths
+            ):
+                continue
+            filtered_files.append(file_path)
 
         # Exclude gitignored files — rglob includes them; git ls-files does not
         try:

@@ -514,6 +514,47 @@ class TestCodeStandardsFixes:
             for r in results.passed + results.warnings + results.failed
         ), "CodeQL check should be absent for a shell-only repo"
 
+    @pytest.mark.positronikal_standards
+    def test_exclude_paths_skips_configured_dir(self, temp_repo):
+        """Files under [tool.positronikal-check] exclude-paths are not scanned."""
+        from positronikal_standards_check.core.code_standards import (
+            CodeStandardsValidator,
+        )
+
+        # A very long Python line that would normally fail the line-length check
+        api_dir = temp_repo / "api"
+        api_dir.mkdir()
+        long_line = "x = " + "a" * 200
+        (api_dir / "generated.py").write_text(long_line + "\n", newline="")
+
+        # Without exclude-paths: the violation is detected
+        validator_no_exclude = CodeStandardsValidator(temp_repo)
+        results_no_exclude = validator_no_exclude._check_line_length()
+        assert any(r["status"] == "fail" for r in results_no_exclude), (
+            "Long line in api/ should fail without exclude-paths"
+        )
+
+        # With exclude-paths = ["api"]: the violation is suppressed
+        pyproject = temp_repo / "pyproject.toml"
+        pyproject.write_text('[tool.positronikal-check]\nexclude-paths = ["api"]\n')
+        validator_with_exclude = CodeStandardsValidator(temp_repo)
+        results_with_exclude = validator_with_exclude._check_line_length()
+        assert not any(r["status"] == "fail" for r in results_with_exclude), (
+            'Long line in api/ should be ignored with exclude-paths = ["api"]'
+        )
+
+    @pytest.mark.positronikal_standards
+    def test_exclude_paths_no_config_is_noop(self, temp_repo):
+        """Absence of exclude-paths in pyproject.toml does not affect scanning."""
+        from positronikal_standards_check.core.code_standards import (
+            CodeStandardsValidator,
+        )
+
+        (temp_repo / "src" / "main.py").write_text("x = 1\n", newline="")
+        validator = CodeStandardsValidator(temp_repo)
+        # Should not raise; returns an empty set
+        assert validator._read_exclude_paths() == set()
+
 
 class TestBuildSystem:
     """Test build system validation."""
