@@ -332,6 +332,19 @@ This applies to all project types:
 - [ ] Go: `ldflags` version injection in Makefile
 - [ ] Tags are GPG-signed annotated tags (verified in GitHub as "Verified")
 
+### SBOM Release Asset
+
+Attach `sbom.cdx.json` to each GitHub Release as a release asset so downstream
+consumers who do not clone the repository can access the SBOM directly alongside
+release notes and build artifacts.
+
+```bash
+gh release upload vX.Y.Z sbom.cdx.json
+```
+
+Regenerate the SBOM before tagging the release. See
+[security/sbom.md](./security/sbom.md) for generation instructions.
+
 ## Advanced Configuration for Forensic Evidence Compliance
 
 ### Enhanced Audit Requirements

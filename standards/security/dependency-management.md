@@ -211,3 +211,15 @@ Before adding any dependency:
   `go mod verify` (Go).
 - Run audit tools in CI per [automation-and-tooling.md §4.3](./automation-and-tooling.md).
 - A Tier 1 finding from an audit tool in CI should fail the build.
+
+---
+
+## SBOM
+
+Lock files capture component data in a tool-specific format. For a
+machine-readable inventory that external security tooling, compliance workflows,
+and downstream consumers can ingest, generate a Software Bill of Materials
+(SBOM) in CycloneDX or SPDX format.
+
+See [sbom.md](./sbom.md) for format, tooling, file placement, and lifecycle
+requirements.

@@ -49,6 +49,16 @@ class FileRequirementsValidator:
         ".github/PULL_REQUEST_TEMPLATE.md": "Pull request template",
     }
 
+    # SBOM files — any one of these at repo root satisfies the check.
+    # Preferred: sbom.cdx.json (CycloneDX JSON). See standards/security/sbom.md.
+    SBOM_FILES = [
+        "sbom.cdx.json",
+        "bom.json",
+        "sbom.cdx.xml",
+        "sbom.spdx.json",
+        "sbom.spdx",
+    ]
+
     # Standard directories. "test" accepts tests/ too — see _check_standard_directories.
     # "docs" is intentionally absent: docs/ is optional human-authored content.
     # Doxygen output goes to api/ (tracked in git, excluded from linting).
@@ -113,6 +123,9 @@ class FileRequirementsValidator:
 
         # Check standard directories
         results.extend(self._check_standard_directories())
+
+        # Check for machine-readable SBOM
+        results.extend(self._check_sbom_file())
 
         return results
 
@@ -398,6 +411,28 @@ class FileRequirementsValidator:
                 )
 
         return results
+
+    def _check_sbom_file(self) -> List[Dict]:
+        """Check for a machine-readable SBOM at the repo root."""
+        for filename in self.SBOM_FILES:
+            if (self.repo_path / filename).exists():
+                return [
+                    {
+                        "check": "sbom_file",
+                        "status": "pass",
+                        "message": f"SBOM file found: {filename}",
+                    }
+                ]
+        return [
+            {
+                "check": "sbom_file",
+                "status": "warning",
+                "message": (
+                    "No machine-readable SBOM found. Generate one with cyclonedx-py "
+                    "and commit as sbom.cdx.json. See standards/security/sbom.md."
+                ),
+            }
+        ]
 
     def check_file_size_limits(self) -> List[Dict]:
         """Check that no files exceed 10MB limit."""

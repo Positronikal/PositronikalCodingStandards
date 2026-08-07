@@ -164,6 +164,11 @@ updates:
         mode = path.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
         os.chmod(path, mode)  # noqa: S103 -- test fixture hook, not shipped output
 
+    # Add SBOM (CycloneDX JSON — preferred format)
+    (repo_path / "sbom.cdx.json").write_text(
+        '{"bomFormat": "CycloneDX", "specVersion": "1.6"}\n'
+    )
+
     # Add sample source file
     # newline="" disables write_text's default platform newline
     # translation (CRLF on Windows), so the file is LF on every OS.
@@ -315,6 +320,28 @@ class TestFileRequirements:
         assert any(
             r["check"] == "required_file_CODE_OF_CONDUCT.md" and r["status"] == "pass"
             for r in results.passed
+        )
+
+    @pytest.mark.positronikal_files
+    def test_sbom_file_missing(self, temp_repo):
+        """Test warning when no SBOM file is present."""
+        checker = PositronikalStandardsChecker(str(temp_repo))
+        results = checker.check_files()
+        assert any(
+            r["check"] == "sbom_file" and r["status"] == "warning"
+            for r in results.warnings
+        )
+
+    @pytest.mark.positronikal_files
+    def test_sbom_file_present(self, temp_repo):
+        """Test pass when sbom.cdx.json exists at repo root."""
+        (temp_repo / "sbom.cdx.json").write_text(
+            '{"bomFormat": "CycloneDX", "specVersion": "1.6"}\n'
+        )
+        checker = PositronikalStandardsChecker(str(temp_repo))
+        results = checker.check_files()
+        assert any(
+            r["check"] == "sbom_file" and r["status"] == "pass" for r in results.passed
         )
 
     @pytest.mark.positronikal_files
