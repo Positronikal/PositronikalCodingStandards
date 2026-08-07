@@ -50,10 +50,11 @@ class FileRequirementsValidator:
     }
 
     # Standard directories. "test" accepts tests/ too — see _check_standard_directories.
+    # "docs" is intentionally absent: docs/ is optional human-authored content.
+    # Doxygen output goes to api/ (tracked in git, excluded from linting).
     STANDARD_DIRECTORIES = {
         "src": "Source code",
         "test": "Test files",
-        "docs": "Documentation",
     }
 
     # File extensions supported by CodeQL — shell is NOT included

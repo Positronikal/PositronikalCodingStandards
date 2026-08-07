@@ -107,3 +107,22 @@ Default rules for source files are found in the [GNU Coding Standards](https://w
 9. **Avoid Tricky Expressions:**
   - Strive for clarity and simplicity in code, avoiding overly complex or obscure expressions.
 
+
+## Repository Directory Structure
+
+### Standard Directories
+
+`src/` and `test/` (or `tests/`) are required in all Positronikal repos.
+`positronikal-check` warns when either is absent.
+
+`docs/` is optional. Use it for human-authored content (manuals, architecture
+guides, design notes). Its absence is not a compliance gap.
+
+### Generated Documentation: `api/`
+
+Doxygen output goes to `api/` at the repo root (flat: `HTML_OUTPUT = api`).
+The `api/` directory is tracked in git — the generated HTML is the distributable
+artifact. Do not use `docs/html/` or `doxygen/` as output paths.
+
+`api/` is excluded from positronikal-check linting scans. Generated HTML
+produces false positives for line length and indentation checks.
