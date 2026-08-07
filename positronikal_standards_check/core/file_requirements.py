@@ -19,6 +19,7 @@ class FileRequirementsValidator:
     REQUIRED_FILES = {
         "README.md": "Project documentation",
         "CONTRIBUTING.md": "Contribution guidelines",
+        "CODE_OF_CONDUCT.md": "Community code of conduct",
         ".gitignore": "Git ignore patterns",
         "SECURITY.md": "Security policy",
     }

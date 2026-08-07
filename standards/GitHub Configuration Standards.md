@@ -468,3 +468,18 @@ A properly configured GitHub environment will demonstrate:
 - ✅ **Regular Maintenance**: Scheduled reviews and updates performed
 
 This configuration provides a robust foundation for secure, compliant, and legally defensible software development workflows.
+
+## Code of Conduct
+
+All Positronikal repositories must include a `CODE_OF_CONDUCT.md` at the repo
+root. This is a GitHub community health file — GitHub's community profile
+checker flags its absence.
+
+**Standard**: Contributor Covenant v2.1
+**Enforcement contact**: `admin@positronikal.tech`
+**Canonical template**: `repo-template/CODE_OF_CONDUCT.md`
+**Checker enforcement**: `positronikal-check` requires the file as a hard fail
+
+The file must not be empty. Content must not be modified without updating the
+version reference in the Attribution section. Per-repo variations are not
+permitted — the enforcement contact is always `admin@positronikal.tech`.

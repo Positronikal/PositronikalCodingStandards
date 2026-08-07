@@ -52,6 +52,9 @@ def compliant_repo(temp_repo):
     (repo_path / "CONTRIBUTING.md").write_text(
         "# Contributing\n\nContribution guidelines."
     )
+    (repo_path / "CODE_OF_CONDUCT.md").write_text(
+        "# Code of Conduct\n\nContributor Covenant v2.1."
+    )
     (repo_path / ".gitignore").write_text("*.pyc\n__pycache__/\nnode_modules/")
     (repo_path / "LICENSE.md").write_text("MIT License\n\nCopyright (c) 2024")
     (repo_path / "AUTHORS.md").write_text("# Authors\n\n- Test Author")
@@ -218,6 +221,10 @@ class TestFileRequirements:
             for r in results.failed
         )
         assert any(
+            r["status"] == "fail" and "CODE_OF_CONDUCT.md" in r["message"]
+            for r in results.failed
+        )
+        assert any(
             r["status"] == "fail" and ".gitignore" in r["message"]
             for r in results.failed
         )
@@ -287,6 +294,26 @@ class TestFileRequirements:
         assert any(
             r["check"] == "github_template_.github_PULL_REQUEST_TEMPLATE.md"
             and r["status"] == "pass"
+            for r in results.passed
+        )
+
+    @pytest.mark.positronikal_files
+    def test_code_of_conduct_missing(self, temp_repo):
+        """Test fail when CODE_OF_CONDUCT.md is absent."""
+        checker = PositronikalStandardsChecker(str(temp_repo))
+        results = checker.check_files()
+        assert any(
+            r["check"] == "required_file_CODE_OF_CONDUCT.md" and r["status"] == "fail"
+            for r in results.failed
+        )
+
+    @pytest.mark.positronikal_files
+    def test_code_of_conduct_present(self, compliant_repo):
+        """Test pass when CODE_OF_CONDUCT.md is present."""
+        checker = PositronikalStandardsChecker(str(compliant_repo))
+        results = checker.check_files()
+        assert any(
+            r["check"] == "required_file_CODE_OF_CONDUCT.md" and r["status"] == "pass"
             for r in results.passed
         )
 
