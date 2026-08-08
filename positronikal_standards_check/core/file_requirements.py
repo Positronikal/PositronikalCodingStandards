@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """
 File requirements validation for Positronikal standards.
 """
@@ -24,8 +25,23 @@ class FileRequirementsValidator:
         "SECURITY.md": "Security policy",
     }
 
-    # License files (at least one required)
-    LICENSE_FILES = ["COPYING.md", "COPYING.LESSER.md", "LICENSE.md", "LICENSE.CC.md"]
+    # License files (at least one required).
+    # Preferred: bare names (no extension) — detected by GitHub licensee and SPDX tools.
+    # The .md variants are accepted for backward compatibility but trigger a migration
+    # warning. See GitHub Configuration Standards.md § Licensing (SPDX).
+    LICENSE_FILES = [
+        "COPYING",
+        "COPYING.LESSER",
+        "LICENSE",  # preferred
+        "COPYING.md",
+        "COPYING.LESSER.md",
+        "LICENSE.md",
+        "LICENSE.CC.md",  # legacy
+    ]
+    LICENSE_FILES_PREFERRED = frozenset({"COPYING", "COPYING.LESSER", "LICENSE"})
+
+    # Source file extensions that require an SPDX-License-Identifier header.
+    SPDX_EXTENSIONS = frozenset({".py", ".go", ".sh", ".c", ".cpp", ".h", ".hpp"})
 
     # Optional but recommended files
     RECOMMENDED_FILES = {
@@ -147,6 +163,9 @@ class FileRequirementsValidator:
         # Check for machine-readable SBOM
         results.extend(self._check_sbom_file())
 
+        # Check SPDX-License-Identifier headers in source files
+        results.extend(self._check_spdx_headers())
+
         return results
 
     def _check_required_files(self) -> List[Dict]:
@@ -194,7 +213,28 @@ class FileRequirementsValidator:
             if (self.repo_path / license_file).exists():
                 found_licenses.append(license_file)
 
-        if found_licenses:
+        if not found_licenses:
+            results.append(
+                {
+                    "check": "license_file",
+                    "status": "fail",
+                    "message": (
+                        "No license file found. Preferred: COPYING or LICENSE "
+                        "(no extension, SPDX-detectable). Also accepted: "
+                        + ", ".join(
+                            f
+                            for f in self.LICENSE_FILES
+                            if f not in self.LICENSE_FILES_PREFERRED
+                        )
+                    ),
+                }
+            )
+            return results
+
+        preferred = [f for f in found_licenses if f in self.LICENSE_FILES_PREFERRED]
+        legacy = [f for f in found_licenses if f not in self.LICENSE_FILES_PREFERRED]
+
+        if preferred:
             results.append(
                 {
                     "check": "license_file",
@@ -206,10 +246,56 @@ class FileRequirementsValidator:
             results.append(
                 {
                     "check": "license_file",
-                    "status": "fail",
+                    "status": "warning",
                     "message": (
-                        f"No license file found. Need one of: "
-                        f"{', '.join(self.LICENSE_FILES)}"
+                        f"License file uses .md extension ({', '.join(legacy)}). "
+                        f"Rename to bare filename (COPYING or LICENSE) for SPDX "
+                        f"machine-detection by GitHub licensee and registry tooling."
+                    ),
+                }
+            )
+
+        return results
+
+    def _check_spdx_headers(self) -> List[Dict]:
+        """Check source files for SPDX-License-Identifier headers (warning level)."""
+        results = []
+        missing = []
+
+        for path in self.repo_path.rglob("*"):
+            if not path.is_file():
+                continue
+            if path.suffix not in self.SPDX_EXTENSIONS:
+                continue
+            parts = path.relative_to(self.repo_path).parts
+            if any(p.startswith(".") or p in self._INFRA_DIRS for p in parts):
+                continue
+            try:
+                with path.open(encoding="utf-8", errors="ignore") as f:
+                    header = "".join(f.readline() for _ in range(5))
+                if "SPDX-License-Identifier:" not in header:
+                    missing.append(str(path.relative_to(self.repo_path)))
+            except OSError:
+                continue
+
+        if not missing:
+            results.append(
+                {
+                    "check": "spdx_headers",
+                    "status": "pass",
+                    "message": "All source files have SPDX-License-Identifier headers.",
+                }
+            )
+        else:
+            results.append(
+                {
+                    "check": "spdx_headers",
+                    "status": "warning",
+                    "message": (
+                        f"{len(missing)} source file(s) missing "
+                        f"SPDX-License-Identifier header: "
+                        f"{', '.join(missing[:5])}"
+                        + (" ..." if len(missing) > 5 else "")
                     ),
                 }
             )

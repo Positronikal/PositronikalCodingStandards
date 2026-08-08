@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """
 Pytest integration tests for Positronikal Standards Checker.
 """
@@ -268,14 +269,27 @@ class TestFileRequirements:
             for r in results.failed
         )
 
-        # Add license and recheck
-        (temp_repo / "COPYING.md").write_text("GPL License")
+        # Preferred bare filename passes cleanly
+        (temp_repo / "COPYING").write_text("GPL License")
         checker = PositronikalStandardsChecker(str(temp_repo))
         results = checker.check_files()
-
         assert any(
             r["check"] == "license_file" and r["status"] == "pass"
             for r in results.passed
+        )
+
+        # Legacy .md variant warns but does not fail
+        (temp_repo / "COPYING").unlink()
+        (temp_repo / "COPYING.md").write_text("GPL License")
+        checker = PositronikalStandardsChecker(str(temp_repo))
+        results = checker.check_files()
+        assert any(
+            r["check"] == "license_file" and r["status"] == "warning"
+            for r in results.warnings
+        )
+        assert not any(
+            r["check"] == "license_file" and r["status"] == "fail"
+            for r in results.failed
         )
 
     @pytest.mark.positronikal_files

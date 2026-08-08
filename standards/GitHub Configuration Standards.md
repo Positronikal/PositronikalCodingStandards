@@ -482,6 +482,53 @@ A properly configured GitHub environment will demonstrate:
 
 This configuration provides a robust foundation for secure, compliant, and legally defensible software development workflows.
 
+## Licensing (SPDX)
+
+All Positronikal repositories use SPDX (Software Package Data Exchange,
+ISO/IEC 5962:2021) for machine-readable license identification.
+
+### License file
+
+**Required filename**: `COPYING` (GPL/LGPL projects) or `LICENSE` — bare,
+no `.md` extension. The bare filename is recognized by GitHub's `licensee`
+tool, Glama, FOSSA, and other registry tooling that auto-detect license type.
+
+The `.md` extension variants (`COPYING.md`, etc.) are accepted by
+`positronikal-check` for backward compatibility but trigger a migration
+warning. Rename to the bare filename at the next repo health check.
+
+**Content**: The file must begin with an `SPDX-License-Identifier:` line,
+followed by the standard copyright notice header, followed by the verbatim
+license text retrieved from:
+- GPL-3.0-or-later: `https://www.gnu.org/licenses/gpl-3.0.txt`
+- LGPL-3.0-or-later: `https://www.gnu.org/licenses/lgpl-3.0.txt`
+
+**Canonical template**: `repo-template/COPYING` (GPL) or
+`repo-template/COPYING.LESSER` (LGPL).
+
+### Source file headers
+
+Every source file (`.py`, `.go`, `.sh`, `.c`, `.cpp`, `.h`, `.hpp`) must
+include an `SPDX-License-Identifier:` line within the first five lines:
+
+```python
+# SPDX-License-Identifier: GPL-3.0-or-later
+```
+```go
+// SPDX-License-Identifier: GPL-3.0-or-later
+```
+```c
+// SPDX-License-Identifier: GPL-3.0-or-later
+```
+
+`positronikal-check` enforces this as a warning. The intent is to make
+per-file license machine-readable without requiring a full SPDX SBOM document.
+
+**Checker enforcement**: `positronikal-check` warns on `.md` license filenames
+and on source files missing the `SPDX-License-Identifier` header.
+
+---
+
 ## Code of Conduct
 
 All Positronikal repositories must include a `CODE_OF_CONDUCT.md` at the repo
