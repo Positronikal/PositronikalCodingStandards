@@ -173,8 +173,7 @@ updates:
     # newline="" disables write_text's default platform newline
     # translation (CRLF on Windows), so the file is LF on every OS.
     (repo_path / "src" / "main.py").write_text(
-        "#!/usr/bin/env python3\n"
-        "# -*- coding: utf-8 -*-\n\n"
+        "#!/usr/bin/env python3\n\n"
         "def main():\n"
         "    print('Hello, World!')\n\n"
         "if __name__ == '__main__':\n"
