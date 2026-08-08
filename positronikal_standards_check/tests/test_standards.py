@@ -939,7 +939,9 @@ class TestComprehensiveValidation:
         results = checker.check_all()
 
         summary = results.get_summary()
-        assert summary["is_passing"] or summary["failed"] == 0
+        assert summary["is_passing"] or summary["failed"] == 0, (
+            f"Unexpected failures: {results.failed}"
+        )
         assert summary["passed"] > 0
 
     @pytest.mark.positronikal_all
