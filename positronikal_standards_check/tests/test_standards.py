@@ -293,6 +293,27 @@ class TestFileRequirements:
         )
 
     @pytest.mark.positronikal_files
+    def test_go_standard_dirs(self, temp_repo):
+        """Go projects: src/ not required; *_test.go accepted for test check."""
+        (temp_repo / "go.mod").write_text("module example.com/foo\n\ngo 1.26\n")
+        (temp_repo / "main.go").write_text(
+            "// SPDX-License-Identifier: GPL-3.0-or-later\npackage main\n"
+        )
+        (temp_repo / "main_test.go").write_text(
+            "// SPDX-License-Identifier: GPL-3.0-or-later\npackage main\n"
+        )
+        checker = PositronikalStandardsChecker(str(temp_repo))
+        results = checker.check_files()
+        assert any(
+            r["check"] == "standard_dir_src" and r["status"] == "pass"
+            for r in results.passed
+        ), "Go: src/ should pass without a src/ directory"
+        assert any(
+            r["check"] == "standard_dir_test" and r["status"] == "pass"
+            for r in results.passed
+        ), "Go: *_test.go files should satisfy the test directory check"
+
+    @pytest.mark.positronikal_files
     def test_pr_template_missing(self, temp_repo):
         """Test warning when PR template is absent from a repo with .github/."""
         (temp_repo / ".github").mkdir()
@@ -944,6 +965,31 @@ class TestVersioning:
             r["check"] == "python_version_source" and r["status"] == "warning"
             for r in results.warnings
         )
+
+    @pytest.mark.positronikal_security
+    def test_go_lockfile_no_deps(self, temp_repo):
+        """Pure-stdlib Go module: go.sum not required."""
+        (temp_repo / "go.mod").write_text("module example.com/foo\n\ngo 1.26\n")
+        checker = PositronikalStandardsChecker(str(temp_repo))
+        results = checker.check_security()
+        assert any(
+            r["check"] == "go_lockfile" and r["status"] == "pass"
+            for r in results.passed
+        ), "Pure-stdlib Go module should pass go_lockfile without go.sum"
+
+    @pytest.mark.positronikal_security
+    def test_go_lockfile_with_deps_missing_sum(self, temp_repo):
+        """Go module with external deps and no go.sum should fail."""
+        (temp_repo / "go.mod").write_text(
+            "module example.com/foo\n\ngo 1.26\n\n"
+            "require github.com/pkg/errors v0.9.1\n"
+        )
+        checker = PositronikalStandardsChecker(str(temp_repo))
+        results = checker.check_security()
+        assert any(
+            r["check"] == "go_lockfile" and r["status"] == "fail"
+            for r in results.failed
+        ), "Go module with external deps and no go.sum should fail"
 
     @pytest.mark.positronikal_version
     def test_go_versioning_with_ldflags(self, temp_repo):

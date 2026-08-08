@@ -28,9 +28,12 @@ class CodeStandardsValidator:
     # Maximum line length per standards (GNU baseline)
     MAX_LINE_LENGTH = 79
 
-    # Per-language overrides — Ruff manages Python at 88; GNU 79 doesn't apply
+    # Per-language overrides — Ruff manages Python at 88; GNU 79 doesn't apply.
+    # Go has no hard limit; 120 matches golangci-lint defaults and catches
+    # genuinely excessive lines without flagging idiomatic long signatures.
     LANGUAGE_LINE_LENGTHS = {
         ".py": 88,
+        ".go": 120,
     }
 
     # File extensions to check for different languages
@@ -301,8 +304,11 @@ class CodeStandardsValidator:
         files_with_tabs = []
 
         for file_path in self._get_source_files():
-            # Skip Makefiles (they require tabs)
-            if file_path.name in ["Makefile", "makefile"] or file_path.suffix == ".mk":
+            # Skip Makefiles and Go files — both mandate tabs by tooling convention
+            if file_path.name in ["Makefile", "makefile"] or file_path.suffix in {
+                ".mk",
+                ".go",
+            }:
                 continue
 
             files_checked += 1

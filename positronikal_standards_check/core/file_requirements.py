@@ -43,6 +43,9 @@ class FileRequirementsValidator:
     # Source file extensions that require an SPDX-License-Identifier header.
     SPDX_EXTENSIONS = frozenset({".py", ".go", ".sh", ".c", ".cpp", ".h", ".hpp"})
 
+    # Filenames exempt from SPDX header checks (auto-generated; not hand-authored).
+    SPDX_EXEMPT_NAMES = frozenset({"_version.py"})
+
     # Optional but recommended files
     RECOMMENDED_FILES = {
         "AUTHORS.md": "List of contributors",
@@ -267,6 +270,8 @@ class FileRequirementsValidator:
                 continue
             if path.suffix not in self.SPDX_EXTENSIONS:
                 continue
+            if path.name in self.SPDX_EXEMPT_NAMES:
+                continue
             parts = path.relative_to(self.repo_path).parts
             if any(p.startswith(".") or p in self._INFRA_DIRS for p in parts):
                 continue
@@ -479,8 +484,52 @@ class FileRequirementsValidator:
     def _check_standard_directories(self) -> List[Dict]:
         """Check for standard directory structure."""
         results = []
+        is_go = (self.repo_path / "go.mod").exists()
 
         for dirname, description in self.STANDARD_DIRECTORIES.items():
+            # Go modules: source lives at repo root, tests co-locate as *_test.go
+            if is_go and dirname == "src":
+                results.append(
+                    {
+                        "check": "standard_dir_src",
+                        "status": "pass",
+                        "message": (
+                            "Go module: source at repo root (go.mod present, "
+                            "src/ not applicable)"
+                        ),
+                    }
+                )
+                continue
+            if is_go and dirname == "test":
+                go_tests = [
+                    f
+                    for f in self.repo_path.rglob("*_test.go")
+                    if not any(
+                        p in self._INFRA_DIRS
+                        for p in f.relative_to(self.repo_path).parts
+                    )
+                ]
+                if go_tests:
+                    results.append(
+                        {
+                            "check": "standard_dir_test",
+                            "status": "pass",
+                            "message": (
+                                f"Go tests found: {len(go_tests)} *_test.go file(s) "
+                                f"(co-located per Go convention)"
+                            ),
+                        }
+                    )
+                else:
+                    results.append(
+                        {
+                            "check": "standard_dir_test",
+                            "status": "warning",
+                            "message": ("No test/ directory or *_test.go files found"),
+                        }
+                    )
+                continue
+
             # The test directory accepts both test/ and tests/
             candidates = [self.repo_path / dirname]
             if dirname == "test":

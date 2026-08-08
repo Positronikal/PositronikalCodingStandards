@@ -370,9 +370,21 @@ class SecurityValidator:
                     }
                 )
 
-        # Check for go.sum (Go)
+        # Check for go.sum (Go) — only required when go.mod declares external deps.
+        # Pure-stdlib modules produce no go.sum from `go mod tidy` by design.
         if (self.repo_path / "go.mod").exists():
-            if (self.repo_path / "go.sum").exists():
+            has_external_deps = self._go_mod_has_requires(self.repo_path / "go.mod")
+            if not has_external_deps:
+                results.append(
+                    {
+                        "check": "go_lockfile",
+                        "status": "pass",
+                        "message": (
+                            "go.sum not required: go.mod has no external dependencies"
+                        ),
+                    }
+                )
+            elif (self.repo_path / "go.sum").exists():
                 results.append(
                     {
                         "check": "go_lockfile",
@@ -390,6 +402,33 @@ class SecurityValidator:
                 )
 
         return results
+
+    @staticmethod
+    def _go_mod_has_requires(go_mod_path: Path) -> bool:
+        """Return True if go.mod contains at least one external require entry."""
+        try:
+            content = go_mod_path.read_text(encoding="utf-8")
+        except OSError:
+            return False
+        in_block = False
+        for line in content.splitlines():
+            stripped = line.strip()
+            if stripped.startswith("require ("):
+                in_block = True
+                continue
+            if in_block:
+                if stripped == ")":
+                    in_block = False
+                elif stripped and not stripped.startswith("//"):
+                    return True
+            elif stripped.startswith("require ") and not stripped.startswith(
+                "require ("
+            ):
+                # single-line: require module/path vX.Y.Z
+                parts = stripped.split()
+                if len(parts) >= 3:
+                    return True
+        return False
 
     def _check_github_actions_security(self) -> List[Dict]:
         """Check GitHub Actions security configurations."""
