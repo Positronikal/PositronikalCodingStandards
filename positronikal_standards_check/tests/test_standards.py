@@ -485,6 +485,66 @@ class TestCodeStandardsFixes:
             for r in results.passed
         ), "tests/ directory should pass the standard_dir_test check"
 
+    @pytest.mark.positronikal_files
+    def test_flat_python_package_accepted_as_src(self, temp_repo):
+        """A top-level directory with __init__.py satisfies the src check."""
+        pkg = temp_repo / "mypkg"
+        pkg.mkdir()
+        (pkg / "__init__.py").write_text("")
+        (pkg / "core.py").write_text("x = 1\n")
+        checker = PositronikalStandardsChecker(str(temp_repo))
+        results = checker.check_files()
+        assert any(
+            r["check"] == "standard_dir_src" and r["status"] == "pass"
+            for r in results.passed
+        ), "Flat-layout Python package dir should satisfy standard_dir_src"
+
+    @pytest.mark.positronikal_files
+    def test_embedded_tests_accepted_as_test_dir(self, temp_repo):
+        """tests/ nested inside a flat-layout package satisfies the test check."""
+        pkg = temp_repo / "mypkg"
+        pkg.mkdir()
+        (pkg / "__init__.py").write_text("")
+        tests = pkg / "tests"
+        tests.mkdir()
+        (tests / "test_core.py").write_text("def test_x(): pass\n")
+        checker = PositronikalStandardsChecker(str(temp_repo))
+        results = checker.check_files()
+        assert any(
+            r["check"] == "standard_dir_test" and r["status"] == "pass"
+            for r in results.passed
+        ), "tests/ inside a flat-layout package should satisfy standard_dir_test"
+
+    @pytest.mark.positronikal_files
+    def test_detect_languages_skips_gitignored_files(self, temp_repo):
+        """_detect_languages() should not detect languages in gitignored dirs."""
+        import subprocess as sp
+
+        sp.run(  # noqa: S603
+            ["git", "init"],  # noqa: S607
+            cwd=temp_repo,
+            capture_output=True,
+        )
+        ref_dir = temp_repo / "ref"
+        ref_dir.mkdir()
+        (ref_dir / "style.js").write_text("const x = 1;\n")
+        (temp_repo / ".gitignore").write_text("ref/\n")
+        sp.run(  # noqa: S603
+            ["git", "add", ".gitignore"],  # noqa: S607
+            cwd=temp_repo,
+            capture_output=True,
+        )
+
+        from positronikal_standards_check.core.code_standards import (
+            CodeStandardsValidator,
+        )
+
+        validator = CodeStandardsValidator(temp_repo)
+        langs = validator._detect_languages()
+        assert "javascript" not in langs, (
+            "_detect_languages() must not detect JS in a gitignored ref/ dir"
+        )
+
     @pytest.mark.positronikal_security
     def test_python_deps_pyproject_plus_uvlock(self, temp_repo):
         """pyproject.toml + uv.lock is accepted as valid Python dep management."""

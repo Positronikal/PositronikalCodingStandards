@@ -631,12 +631,41 @@ class CodeStandardsValidator:
 
     def _detect_languages(self) -> List[str]:
         """Detect programming languages used in the repository."""
-        detected = []
+        # Use git ls-files to respect .gitignore, same as _get_source_files().
+        # Falls back to rglob if git is unavailable.
+        try:
+            result = subprocess.run(  # noqa: S603
+                [  # noqa: S607
+                    "git",
+                    "ls-files",
+                    "--cached",
+                    "--others",
+                    "--exclude-standard",
+                ],
+                capture_output=True,
+                text=True,
+                cwd=self.repo_path,
+                timeout=10,
+            )
+            if result.returncode == 0:
+                tracked_exts = {
+                    Path(p.strip()).suffix
+                    for p in result.stdout.splitlines()
+                    if p.strip()
+                }
+                return [
+                    lang
+                    for lang, exts in self.LANGUAGE_EXTENSIONS.items()
+                    if any(ext in tracked_exts for ext in exts)
+                ]
+        except Exception:  # noqa: S110
+            pass  # git unavailable; fall through to rglob
 
+        # Fallback: rglob (does not respect .gitignore)
+        detected = []
         for language, extensions in self.LANGUAGE_EXTENSIONS.items():
             for ext in extensions:
                 if list(self.repo_path.rglob(f"*{ext}")):
                     detected.append(language)
                     break
-
         return detected

@@ -474,20 +474,49 @@ class SecurityValidator:
         """Run Static Application Security Testing tools."""
         results = []
 
-        # Detect languages
-        detected_languages = []
-        for language, extensions in {
+        # Detect languages via git ls-files so gitignored files are excluded.
+        sast_extensions = {
             "python": [".py"],
             "go": [".go"],
             "javascript": [".js", ".jsx"],
             "java": [".java"],
             "ruby": [".rb"],
             "php": [".php"],
-        }.items():
-            for ext in extensions:
-                if list(self.repo_path.rglob(f"*{ext}")):
-                    detected_languages.append(language)
-                    break
+        }
+        detected_languages = []
+        try:
+            ls = subprocess.run(  # noqa: S603
+                [  # noqa: S607
+                    "git",
+                    "ls-files",
+                    "--cached",
+                    "--others",
+                    "--exclude-standard",
+                ],
+                capture_output=True,
+                text=True,
+                cwd=self.repo_path,
+                timeout=10,
+            )
+            if ls.returncode == 0:
+                tracked_exts = {
+                    Path(p.strip()).suffix for p in ls.stdout.splitlines() if p.strip()
+                }
+                detected_languages = [
+                    lang
+                    for lang, exts in sast_extensions.items()
+                    if any(ext in tracked_exts for ext in exts)
+                ]
+            else:
+                raise RuntimeError("git ls-files failed")
+        except Exception:  # noqa: S110
+            pass  # git unavailable; fall through to rglob
+        if not detected_languages:
+            for language, extensions in sast_extensions.items():
+                for ext in extensions:
+                    if list(self.repo_path.rglob(f"*{ext}")):
+                        detected_languages.append(language)
+                        break
 
         # Run SAST tools for detected languages
         for language in detected_languages:

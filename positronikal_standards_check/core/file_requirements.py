@@ -59,6 +59,26 @@ class FileRequirementsValidator:
         "sbom.spdx",
     ]
 
+    # Infrastructure directories excluded from Python package detection.
+    _INFRA_DIRS = frozenset(
+        {
+            ".git",
+            ".venv",
+            "venv",
+            "node_modules",
+            "build",
+            "dist",
+            ".github",
+            ".husky",
+            "__pycache__",
+            "repo-template",
+            "var",
+            "ref",
+            "api",
+            "docs",
+        }
+    )
+
     # Standard directories. "test" accepts tests/ too — see _check_standard_directories.
     # "docs" is intentionally absent: docs/ is optional human-authored content.
     # Doxygen output goes to api/ (tracked in git, excluded from linting).
@@ -359,6 +379,17 @@ class FileRequirementsValidator:
             }
         ]
 
+    def _find_python_package_dirs(self) -> List[Path]:
+        """Return top-level Python package directories (contain __init__.py)."""
+        return [
+            d
+            for d in self.repo_path.iterdir()
+            if d.is_dir()
+            and d.name not in self._INFRA_DIRS
+            and not d.name.startswith(".")
+            and (d / "__init__.py").exists()
+        ]
+
     def _check_standard_directories(self) -> List[Dict]:
         """Check for standard directory structure."""
         results = []
@@ -368,6 +399,17 @@ class FileRequirementsValidator:
             candidates = [self.repo_path / dirname]
             if dirname == "test":
                 candidates.append(self.repo_path / "tests")
+
+            # Also recognize Python flat-layout packages:
+            # source root = any top-level dir with __init__.py;
+            # test root = test/ or tests/ nested inside one.
+            pkg_dirs = self._find_python_package_dirs()
+            if dirname == "src":
+                candidates.extend(pkg_dirs)
+            if dirname == "test":
+                for pkg in pkg_dirs:
+                    candidates.append(pkg / "test")
+                    candidates.append(pkg / "tests")
 
             existing = [p for p in candidates if p.exists() and p.is_dir()]
             # Prefer a non-empty candidate so tests/ wins over an empty test/
