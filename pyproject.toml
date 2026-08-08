@@ -7,7 +7,7 @@ name = "positronikal-standards-check"
 dynamic = ["version"]
 description = "Validate repository compliance with Positronikal coding standards"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 license = { file = "COPYING.md" }
 authors = [{ name = "Positronikal", email = "hoyt.harness@gmail.com" }]
 keywords = [
@@ -24,8 +24,6 @@ classifiers = [
     "Topic :: Software Development :: Testing",
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
