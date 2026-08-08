@@ -75,6 +75,7 @@ Where this document names a specific tool for a language, that tool is canonical
 - **Python 3:**
   - [PEP 8 – Style Guide for Python Code](https://peps.python.org/pep-0008/ 'PEP 8 – Style Guide for Python Code')
   - Linting and formatting: [Ruff](https://docs.astral.sh/ruff/ 'Ruff') (`ruff check`, `ruff format`) — one tool for both; do not add Black
+  - **File writes — always specify `newline='\n'`:** `Path.write_text()` defaults to `os.linesep` (`\r\n` on Windows) regardless of shell. Always pass `newline='\n'` explicitly, or use `path.write_bytes(content.encode('utf-8'))` to bypass newline translation entirely. Available since Python 3.10 (the PCS minimum). No global override exists.
 
 ## Default Formatting
 Default rules for source files are found in the [GNU Coding Standards](https://www.gnu.org/prep/standards/ 'GNU Coding Standards'). See the [ref/](./ref 'ref/') subdirectory in this repository.
