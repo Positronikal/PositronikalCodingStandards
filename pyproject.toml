@@ -8,7 +8,7 @@ dynamic = ["version"]
 description = "Validate repository compliance with Positronikal coding standards"
 readme = "README.md"
 requires-python = ">=3.10"
-license = { file = "COPYING.md" }
+license = { file = "COPYING" }
 authors = [{ name = "Positronikal", email = "hoyt.harness@gmail.com" }]
 keywords = [
     "coding standards",
