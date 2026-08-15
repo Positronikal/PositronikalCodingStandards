@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "server-name": {
+      "type": "stdio",
+      "command": "uv",
+      "args": ["run", "entry-point"]
+    }
+  }
+}
