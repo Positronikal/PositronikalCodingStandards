@@ -93,14 +93,14 @@ class FileRequirementsValidator:
             "repo-template",
             "var",
             "ref",
-            "api",
+            "doxygen",
             "docs",
         }
     )
 
     # Standard directories. "test" accepts tests/ too — see _check_standard_directories.
-    # "docs" is intentionally absent: docs/ is optional human-authored content.
-    # Doxygen output goes to api/ (tracked in git, excluded from linting).
+    # "docs" is optional human-authored content (manuals, guides). Not required.
+    # Doxygen output goes to doxygen/ (not tracked in git — users generate as needed).
     STANDARD_DIRECTORIES = {
         "src": "Source code",
         "test": "Test files",

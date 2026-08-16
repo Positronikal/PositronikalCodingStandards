@@ -12,6 +12,7 @@ CLAUDE.md
 # Documentation build artifacts
 docs/_build/
 docs/build/
+doxygen/
 *.pdf~
 
 # Editor files

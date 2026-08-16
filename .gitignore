@@ -97,6 +97,7 @@ positronikal_standards_check/_version.py
 # Temporary files
 etc/
 var/
+doxygen/
 *.tmp
 *.bak
 *.log

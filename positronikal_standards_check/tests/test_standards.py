@@ -642,25 +642,25 @@ class TestCodeStandardsFixes:
         )
 
         # A very long Python line that would normally fail the line-length check
-        api_dir = temp_repo / "api"
-        api_dir.mkdir()
+        doxygen_dir = temp_repo / "doxygen"
+        doxygen_dir.mkdir()
         long_line = "x = " + "a" * 200
-        (api_dir / "generated.py").write_text(long_line + "\n", newline="")
+        (doxygen_dir / "generated.py").write_text(long_line + "\n", newline="")
 
         # Without exclude-paths: the violation is detected
         validator_no_exclude = CodeStandardsValidator(temp_repo)
         results_no_exclude = validator_no_exclude._check_line_length()
         assert any(r["status"] == "fail" for r in results_no_exclude), (
-            "Long line in api/ should fail without exclude-paths"
+            "Long line in doxygen/ should fail without exclude-paths"
         )
 
-        # With exclude-paths = ["api"]: the violation is suppressed
+        # With exclude-paths = ["doxygen"]: the violation is suppressed
         pyproject = temp_repo / "pyproject.toml"
-        pyproject.write_text('[tool.positronikal-check]\nexclude-paths = ["api"]\n')
+        pyproject.write_text('[tool.positronikal-check]\nexclude-paths = ["doxygen"]\n')
         validator_with_exclude = CodeStandardsValidator(temp_repo)
         results_with_exclude = validator_with_exclude._check_line_length()
         assert not any(r["status"] == "fail" for r in results_with_exclude), (
-            'Long line in api/ should be ignored with exclude-paths = ["api"]'
+            'Long line in doxygen/ should be ignored with exclude-paths = ["doxygen"]'
         )
 
     @pytest.mark.positronikal_standards
