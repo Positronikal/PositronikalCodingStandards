@@ -100,7 +100,6 @@ class FileRequirementsValidator:
 
     # Standard directories. "test" accepts tests/ too — see _check_standard_directories.
     # "docs" is optional human-authored content (manuals, guides). Not required.
-    # Doxygen output goes to doxygen/ (not tracked in git — users generate as needed).
     STANDARD_DIRECTORIES = {
         "src": "Source code",
         "test": "Test files",
