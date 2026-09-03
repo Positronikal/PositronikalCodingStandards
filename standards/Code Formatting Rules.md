@@ -142,3 +142,37 @@ Paths are relative to the repo root and matched as prefixes. Files anywhere
 under the declared path are excluded from all content-scanning checks
 (line length, indentation, whitespace, sensitive data). File-presence checks
 (`REQUIRED_FILES`, `GITHUB_FILES`, etc.) are not affected.
+
+---
+
+## Linting Tiers
+
+Rules enforced by linters and hooks fall into two tiers based on how they are corrected:
+
+**Tier 1 — Auto-enforceable.** The tool finds the violation and can correct it
+mechanically, or the hook blocks the commit and the fix is straightforward. Low
+friction to correct after the fact.
+
+**Tier 2 — Write-time rules.** The tool flags the violation but fixing it requires
+human or model judgment about intent — choosing a different verb, adding meaningful
+error handling, restructuring logic. By the time the hook fires, the cost of
+correction is higher. These rules must be known and applied at write time. Each
+repo documents its active Tier 2 rules in its `CLAUDE.md` under a `## Language
+Rules` section so they are in context during development.
+
+### Per-Language Split
+
+| Language | Tier 1 (auto-enforceable) | Tier 2 (write-time) |
+|---|---|---|
+| **Python** | Ruff formatting, import order, line length, trailing whitespace, quote normalization | S603/S607 (subprocess annotation), S110 (empty except), C901 (cyclomatic complexity), intentional `# noqa` suppressions |
+| **Go** | `gofmt`, `goimports` (all formatting is deterministic) | Unhandled error returns, `defer` in loops, `context.Background()` vs `context.TODO()` |
+| **PowerShell** | PSScriptAnalyzer auto-fixable formatting | Approved verbs only (`Get-Verb` for full list); no empty `catch` blocks; no aliases in scripts; `[CmdletBinding()]` on advanced functions |
+| **bash/shell** | ShellCheck quoting, array usage, most findings | Intentional `# shellcheck disable=` annotations — each must have a documented reason |
+| **C/C++** | `uncrustify`, `Cppcheck` auto-fixes | Memory ownership, cast safety, preprocessor hygiene |
+
+### Health Check and Tier 2 Population
+
+When a repo-health-check is run on a repo that has not yet documented its Tier 2
+rules in `CLAUDE.md`, populate the `## Language Rules` section as part of that
+session. This happens once per repo. See the `repo-template/CLAUDE.md` for the
+section structure to use.
