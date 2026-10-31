@@ -86,34 +86,34 @@ class ValidationResult:
 
         # Print failures
         if self.failed:
-            print(f"\n❌ FAILED CHECKS ({len(self.failed)}):")
+            print(f"\n[FAIL] FAILED CHECKS ({len(self.failed)}):")
             for fail in self.failed:
                 print(f"  - {fail['check']}: {fail['message']}")
 
         # Print warnings
         if self.warnings:
-            print(f"\n⚠️  WARNINGS ({len(self.warnings)}):")
+            print(f"\n[WARN]  WARNINGS ({len(self.warnings)}):")
             for warning in self.warnings:
                 print(f"  - {warning['check']}: {warning['message']}")
 
         # Print errors
         if self.errors:
-            print(f"\n🔥 ERRORS ({len(self.errors)}):")
+            print(f"\n[ERROR] ERRORS ({len(self.errors)}):")
             for error in self.errors:
                 print(f"  - {error['check']}: {error['message']}")
 
         # Print passes (optionally verbose)
         if self.passed and os.environ.get("VERBOSE", "").lower() == "true":
-            print(f"\n✅ PASSED CHECKS ({len(self.passed)}):")
+            print(f"\n[PASS] PASSED CHECKS ({len(self.passed)}):")
             for pass_item in self.passed:
                 print(f"  - {pass_item['check']}: {pass_item['message']}")
 
         # Final status
         print("\n" + "=" * 60)
         if self.is_passing:
-            print("✅ VALIDATION PASSED")
+            print("[PASS] VALIDATION PASSED")
         else:
-            print("❌ VALIDATION FAILED")
+            print("[FAIL] VALIDATION FAILED")
         print("=" * 60 + "\n")
 
 

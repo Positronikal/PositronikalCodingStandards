@@ -39,60 +39,26 @@ The **[ref/](./ref/ 'ref/')** directory contains:
 ## Automated Standards Validation
 
 ### Positronikal Standards Checker
-This repository includes an automated validation tool to help ensure your projects comply with these standards. The `positronikal_standards_check` module provides comprehensive pytest-compatible testing for repository structure, code formatting, security requirements, and forensic tool standards.
+This repository ships `positronikal-check`, a command-line tool that validates
+repository compliance with these standards.
 
-**Integration Instructions**
-1. Copy the checker module to your project:
+**Install**
 ```bash
-cp -r positronikal_standards_check/ /path/to/your/project/
+pip install git+https://github.com/Positronikal/PositronikalCodingStandards.git
 ```
 
-2. Install **pytest** if not already available:
+**Run**
 ```bash
-pip install pytest
-```
-
-3. Run standards validation:
-```bash
-# Run all standards checks
-pytest positronikal_standards_check/
-
-# Run specific validation categories
-pytest positronikal_standards_check/tests/test_file_requirements.py
-pytest positronikal_standards_check/tests/test_security_compliance.py
+positronikal-check /path/to/your/repo          # summary
+positronikal-check /path/to/your/repo --check all --json   # full JSON output
 ```
 
 **CI/CD Integration**
-Add to your GitHub Actions workflow (`.github/workflows/standards.yml`):
 ```yaml
-name: Standards Compliance
-on: [push, pull_request]
-jobs:
-  standards-check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-      - name: Install dependencies
-        run: pip install pytest
-      - name: Run standards validation
-        run: pytest positronikal_standards_check/ -v
-```
-
-**Pre-commit Integration**
-Add to your `.pre-commit-hooks.yaml`:
-```yaml
-repos:
-  - repo: local
-    hooks:
-      - id: positronikal-standards
-        name: Positronikal Standards Check
-        entry: pytest positronikal_standards_check/
-        language: system
-        pass_filenames: false
+- name: Install positronikal-check
+  run: pip install git+https://github.com/Positronikal/PositronikalCodingStandards.git
+- name: Run standards validation
+  run: positronikal-check . --check all
 ```
 
 The checker validates:
