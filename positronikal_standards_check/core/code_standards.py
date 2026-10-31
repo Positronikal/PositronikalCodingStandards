@@ -256,6 +256,10 @@ class CodeStandardsValidator:
                             # URLs cannot be broken across lines — exempt them
                             if _URL_RE.search(line):
                                 continue
+                            # Lines with explicit noqa: E501 are ruff-approved
+                            # overrides; respect the same exemption here.
+                            if "# noqa:" in line and "E501" in line:
+                                continue
                             violations.append(
                                 {
                                     "file": str(file_path.relative_to(self.repo_path)),
