@@ -174,7 +174,7 @@ Based on the Unix Philosophy emphasizing:
 These standards are themselves subject to continuous improvement. See [CONTRIBUTING](./CONTRIBUTING.md 'CONTRIBUTING') for guidance on proposing improvements or additions.
 
 ## License
-This framework is licensed under GPL-3.0. See [COPYING](./COPYING.md 'COPYING') for details. The license applies to the framework documentation itself, not to tools developed using these guidelines.
+This framework is licensed under GPL-3.0. See [COPYING](./COPYING 'COPYING') for details. The license applies to the framework documentation itself, not to tools developed using these guidelines.
 
 ---
 
