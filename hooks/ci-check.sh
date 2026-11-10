@@ -15,8 +15,7 @@ echo "Linting with Ruff..."
 uv run python -m ruff check positronikal_standards_check/
 uv run python -m ruff format positronikal_standards_check/ --check
 
-echo "Security vulnerability scan (safety)..."
-uv run python -m safety check --json \
-    || echo "Safety check completed with warnings"
+echo "Security vulnerability scan (uv audit)..."
+uv audit
 
 echo "ci-check passed."

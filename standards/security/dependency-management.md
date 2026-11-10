@@ -174,7 +174,7 @@ fixes via `bundle update <gem>` immediately; Tier 2 updates batched and reviewed
 after the soak period before running `bundle update`.
 
 **Audit:** `bundler-audit check --update` scans `Gemfile.lock` against the
-`ruby-advisory-db` vulnerability feed — Ruby's equivalent of `pip-audit`/`safety`.
+`ruby-advisory-db` vulnerability feed — Ruby's equivalent of `uv audit`/`pip-audit`.
 Run it as part of `hooks/ci-check.sh` for any repo with a `Gemfile`.
 
 ### bash/shell and PowerShell

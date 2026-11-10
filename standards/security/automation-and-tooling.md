@@ -45,7 +45,7 @@ select = ["S"]  # flake8-bandit security rules
 
 Dependency vulnerability scanning is distinct from code security review. Claude security review explicitly excludes outdated third-party libraries — dependency scanning fills that gap.
 
-**Python:** `pip-audit` or `safety`
+**Python:** `uv audit` (uv-managed projects) or `pip-audit`
 **Node.js:** `npm audit`
 **Go:** `govulncheck`
 **Java:** OWASP Dependency Check
