@@ -16,6 +16,6 @@ uv run python -m ruff check positronikal_standards_check/
 uv run python -m ruff format positronikal_standards_check/ --check
 
 echo "Security vulnerability scan (uv audit)..."
-uv audit
+uv audit --preview-features audit
 
 echo "ci-check passed."
