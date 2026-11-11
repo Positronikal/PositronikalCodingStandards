@@ -389,60 +389,36 @@ class TestFileRequirements:
         )
 
     @pytest.mark.positronikal_files
-    def test_codeql_default_setup_active(self, temp_repo):
-        """Test pass when codeql.yml absent but GitHub Default Setup is configured."""
+    def test_codeql_file_required_even_with_default_setup(self, temp_repo):
+        """Test fail when codeql.yml absent even if GitHub Default Setup is configured.
+
+        Default Setup is not an accepted substitute — all repos must carry an
+        explicit codeql.yml workflow.
+        """
         (temp_repo / ".github" / "workflows").mkdir(parents=True)
 
-        remote_mock = MagicMock()
-        remote_mock.returncode = 0
-        remote_mock.stdout = (
-            "https://github.com/Positronikal/PositronikalCodingStandards.git"
+        from positronikal_standards_check.core.file_requirements import (
+            FileRequirementsValidator,
         )
 
-        api_mock = MagicMock()
-        api_mock.returncode = 0
-        api_mock.stdout = json.dumps({"state": "configured", "languages": ["python"]})
-
-        with patch(
-            "positronikal_standards_check.core.file_requirements.subprocess.run",
-            side_effect=[remote_mock, api_mock],
-        ):
-            from positronikal_standards_check.core.file_requirements import (
-                FileRequirementsValidator,
-            )
-
-            validator = FileRequirementsValidator(temp_repo)
-            results = validator._check_codeql_coverage()
+        validator = FileRequirementsValidator(temp_repo)
+        results = validator._check_codeql_coverage()
 
         assert len(results) == 1
-        assert results[0]["status"] == "pass"
+        assert results[0]["status"] == "fail"
         assert "Default Setup" in results[0]["message"]
 
     @pytest.mark.positronikal_files
     def test_codeql_coverage_missing(self, temp_repo):
-        """Test fail when neither codeql.yml nor Default Setup is present."""
+        """Test fail when codeql.yml is not present."""
         (temp_repo / ".github" / "workflows").mkdir(parents=True)
 
-        remote_mock = MagicMock()
-        remote_mock.returncode = 0
-        remote_mock.stdout = (
-            "https://github.com/Positronikal/PositronikalCodingStandards.git"
+        from positronikal_standards_check.core.file_requirements import (
+            FileRequirementsValidator,
         )
 
-        api_mock = MagicMock()
-        api_mock.returncode = 0
-        api_mock.stdout = json.dumps({"state": "not-configured"})
-
-        with patch(
-            "positronikal_standards_check.core.file_requirements.subprocess.run",
-            side_effect=[remote_mock, api_mock],
-        ):
-            from positronikal_standards_check.core.file_requirements import (
-                FileRequirementsValidator,
-            )
-
-            validator = FileRequirementsValidator(temp_repo)
-            results = validator._check_codeql_coverage()
+        validator = FileRequirementsValidator(temp_repo)
+        results = validator._check_codeql_coverage()
 
         assert len(results) == 1
         assert results[0]["status"] == "fail"

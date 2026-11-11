@@ -3,9 +3,6 @@
 File requirements validation for Positronikal standards.
 """
 
-import json
-import re
-import subprocess
 from pathlib import Path
 from typing import Dict, List
 import logging
@@ -398,7 +395,7 @@ class FileRequirementsValidator:
         return False
 
     def _check_codeql_coverage(self) -> List[Dict]:
-        """Check for CodeQL scanning via workflow file or GitHub Default Setup."""
+        """Check that .github/workflows/codeql.yml is present."""
         codeql_file = self.repo_path / ".github" / "workflows" / "codeql.yml"
         check_id = "github_file_.github_workflows_codeql.yml"
 
@@ -411,60 +408,14 @@ class FileRequirementsValidator:
                 }
             ]
 
-        # File absent — check whether GitHub Default Setup covers this repo.
-        # Org-enforced Default Setup prevents repos from running a custom
-        # codeql.yml alongside it, so the file may be intentionally absent.
-        try:
-            # "git" and "gh" are fixed executable names resolved via PATH,
-            # not derived from user input.
-            remote = subprocess.run(  # noqa: S603
-                ["git", "remote", "get-url", "origin"],  # noqa: S607
-                capture_output=True,
-                text=True,
-                cwd=self.repo_path,
-                timeout=10,
-            )
-            if remote.returncode != 0:
-                raise RuntimeError("no git remote")
-
-            match = re.search(
-                r"github\.com[/:]([^/]+/[^/]+?)(?:\.git)?$",
-                remote.stdout.strip(),
-            )
-            if not match:
-                raise RuntimeError(f"unrecognized remote: {remote.stdout.strip()}")
-
-            owner_repo = match.group(1)
-            endpoint = f"repos/{owner_repo}/code-scanning/default-setup"
-            api = subprocess.run(  # noqa: S603
-                ["gh", "api", endpoint],  # noqa: S607
-                capture_output=True,
-                text=True,
-                timeout=15,
-            )
-            if api.returncode == 0:
-                data = json.loads(api.stdout)
-                if data.get("state") == "configured":
-                    return [
-                        {
-                            "check": check_id,
-                            "status": "pass",
-                            "message": (
-                                "CodeQL coverage provided by GitHub Default Setup "
-                                f"({owner_repo}); no codeql.yml needed"
-                            ),
-                        }
-                    ]
-        except Exception as exc:
-            logger.debug("CodeQL Default Setup check failed: %s", exc)
-
         return [
             {
                 "check": check_id,
                 "status": "fail",
                 "message": (
-                    "Missing CodeQL scanning: add .github/workflows/codeql.yml "
-                    "or enable GitHub Default Setup for this repo"
+                    "Missing .github/workflows/codeql.yml. "
+                    "GitHub Default Setup is not an accepted substitute — "
+                    "all repos must carry an explicit codeql.yml workflow."
                 ),
             }
         ]
