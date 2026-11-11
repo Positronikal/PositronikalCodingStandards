@@ -114,3 +114,6 @@ ehthumbs.db
 System Volume Information/
 Thumbs.db
 .claude/CLAUDE.md
+
+# Claude Code local permissions (may contain secrets)
+.claude/settings.local.json
