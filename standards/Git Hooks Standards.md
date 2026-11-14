@@ -119,7 +119,8 @@ Append to any pre-commit hook, after secret scanning:
 
 ```bash
 # Reject files larger than 10MB
-git diff --cached --name-only | while read -r file; do
+# Use process substitution (not a pipe) so exit 1 kills the parent script directly.
+while IFS= read -r file; do
     if [ -f "$file" ]; then
         size=$(stat -f%z "$file" 2>/dev/null || stat -c%s "$file" 2>/dev/null)
         if [ "$size" -gt 10485760 ]; then
@@ -127,7 +128,7 @@ git diff --cached --name-only | while read -r file; do
             exit 1
         fi
     fi
-done
+done < <(git diff --cached --name-only)
 
 # Reject binary executables
 if git diff --cached --name-only | grep -qE '\.(exe|dll|so|dylib)$'; then
